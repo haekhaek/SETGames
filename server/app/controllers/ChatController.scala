@@ -43,7 +43,7 @@ class ChatController @Inject()(implicit actorSystem: ActorSystem,
   }
 
   def chat: Action[AnyContent] = Action { implicit request =>
-    val url = routes.ChatController.chat().webSocketURL()
+    val url = routes.ChatController.chatChannel().webSocketURL()
     val clientAddress = request.remoteAddress
     Ok(views.html.chat(url, clientAddress))
   }
