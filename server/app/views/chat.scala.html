@@ -1,4 +1,4 @@
-@(url: String, clientAddress : String)
+@(url: String, clientAddress : String, users : scala.collection.mutable.Map[String, Long])
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -15,6 +15,12 @@
     </head>
 
     <body>
+        <p>Currently active users</p>
+        <ul>
+            @for(user <- users) {
+                <li>@user._1 (@user._2)</li>
+            }
+        </ul>
         <div class="wrap">
             <div class="container-fluid">
                 <div>

@@ -4,12 +4,12 @@ import java.net.URL
 import javax.inject._
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import akka.stream.Materializer
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Source}
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.mutable.{Map, HashMap}
 
 /**
  * A very simple chat client using websockets.
@@ -21,10 +21,6 @@ class ChatController @Inject()(implicit actorSystem: ActorSystem,
   extends Controller {
 
   private type WSMessage = String
-
-  private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
-
-  private implicit val logging = Logging(actorSystem.eventStream, logger.getName)
 
   // chat room many clients -> merge hub -> broadcasthub -> many clients
   private val (chatSink, chatSource) = {
@@ -45,7 +41,9 @@ class ChatController @Inject()(implicit actorSystem: ActorSystem,
   def chat: Action[AnyContent] = Action { implicit request =>
     val url = routes.ChatController.chatChannel().webSocketURL()
     val clientAddress = request.remoteAddress
-    Ok(views.html.chat(url, clientAddress))
+    UserTracker.update(clientAddress)
+    Ok(views.html.chat(url, clientAddress, UserTracker.currentlyActiveUsers))
+        .withSession(request.session + ("userId" -> clientAddress))
   }
 
   def chatChannel: WebSocket = {
@@ -56,7 +54,6 @@ class ChatController @Inject()(implicit actorSystem: ActorSystem,
         }.recover {
           case e: Exception =>
             val msg = "Cannot create websocket"
-            logger.error(msg, e)
             val result = InternalServerError(msg)
             Left(result)
         }
