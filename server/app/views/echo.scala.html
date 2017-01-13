@@ -1,9 +1,0 @@
-@(url: String)
-
-@main("Play with Scala.js") {
-<h2>Echo Page</h2>
-[<a href="chat">Visit the Chat App</a>]
-<script type="text/javascript">
-    example.EchoApp().echoLogic(new WebSocket("@url"));
-</script>
-}

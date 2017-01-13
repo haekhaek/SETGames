@@ -26,10 +26,10 @@ object ChatApp {
         val text = message.value
         message.value = ""
         val receiverAddress = if(receiver.value == null || receiver.value.isEmpty) {"all"} else {receiver.value}
-        connection.send("{\"messageType\" : 1, \"receiver\":\"" + receiverAddress + "\", \"message\": \"" + text +"\"}");
+        WebSocketUtil.send(connection, WebSocketMessage(0, clientAddress, receiverAddress, text))
     }
     
-    connection.onopen = { (e: dom.Event) =>
+    val onConnectionOpenedHandler = { (e: dom.Event) =>
         send.disabled = false
         messages.innerHTML = s"<li class='bg-info' style='font-size: 1.5em'>Connected</li>${messages.innerHTML}"
         send.onclick = { (e: dom.Event) =>
@@ -42,9 +42,8 @@ object ChatApp {
         }
     }
     
-    connection.onmessage = {
-        (e: dom.MessageEvent) =>
+    val incomingMessageHandler = (e: dom.MessageEvent) =>
           messages.innerHTML += s"<li style='font-size: 1.5em'>${e.data}</li>"
-      }
+    WebSocketUtil.setup(connection, onConnectionOpenedHandler, incomingMessageHandler)
   }
 }
