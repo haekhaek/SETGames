@@ -1,4 +1,4 @@
-@(url: String, clientAddress : String, users : scala.collection.mutable.Map[String, Long])
+@(url: String, clientAddress : String, users : scala.collection.mutable.Map[String, controllers.UserRecord])
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -38,8 +38,14 @@
 
         <div class="footer navbar-fixed-bottom">
             <div class="row">
-                <div class="col-xs-8 col-sm-9">
+                <div class="col-xs-5 col-sm-9">
                     <input id="message" placeholder="Type Here" type="text"
+                      autofocus
+                      autocomplete="off" spellcheck="false" autocorrect="off"
+                      class="form-control input-lg" />
+                </div>
+                <div class="col-xs-3 col-sm-9">
+                    <input id="receiver" placeholder="Recipient" type="text"
                       autofocus
                       autocomplete="off" spellcheck="false" autocorrect="off"
                       class="form-control input-lg" />
@@ -52,8 +58,10 @@
         </div>
         @scalajs.html.scripts("client", routes.Assets.versioned(_).toString, name => getClass.getResource(s"/public/$name") != null)
         <script language="javascript">
-            example.ChatApp().chatLogic("@clientAddress",document.getElementById("send"),
+            example.ChatApp().chatLogic("@clientAddress",
+                document.getElementById("send"),
                 document.getElementById("message"),
+                document.getElementById("receiver"),
                 new WebSocket("@url"));
         </script>
     </body>

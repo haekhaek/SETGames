@@ -12,18 +12,21 @@ object ChatApp {
   @JSExport
   def main(): Unit = {
     dom.document.getElementById("scalajsShoutOut").textContent = SharedMessages.itWorks
-    println("Hello world!")
   }
   
   @JSExport
-  def chatLogic(clientAddress : String, send : html.Button,
-    message : html.Input, connection : dom.WebSocket) {
+  def chatLogic(clientAddress : String,
+        send : html.Button,
+        message : html.Input,
+        receiver : html.Input,
+        connection : dom.WebSocket) {
     val messages = dom.document.getElementById("messages")
     send.disabled = true
     val sendFunc = () => {
         val text = message.value
         message.value = ""
-        connection.send(s"$clientAddress: $text");
+        val receiverAddress = if(receiver.value == null || receiver.value.isEmpty) {"all"} else {receiver.value}
+        connection.send("{\"messageType\" : 1, \"receiver\":\"" + receiverAddress + "\", \"message\": \"" + text +"\"}");
     }
     
     connection.onopen = { (e: dom.Event) =>
