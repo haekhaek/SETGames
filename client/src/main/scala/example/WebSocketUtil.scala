@@ -1,5 +1,6 @@
 package example
 
+import shared.WebSocketMessage
 import scala.scalajs.js
 import js.annotation.JSExport
 import org.scalajs.dom.ext.KeyCode
@@ -7,20 +8,15 @@ import org.scalajs.dom
 import org.scalajs.dom.html
 import shared.SharedMessages
 
-case class WebSocketMessage(
-    val messageType : Int = 0,
-    val sender : String,
-    val receiver : String,
-    val message : String)
+object MessageType {
+    val chat : Int = 0
+}
 
 object WebSocketUtil {
 
   def send(socket : dom.WebSocket,
             socketMessage : WebSocketMessage) {
-    socket.send("{\"messageType\" : " + socketMessage.messageType +
-                        ", \"receiver\":\"" + socketMessage.receiver +
-                        "\", \"message\": \"" + socketMessage.message +
-                        "\", \"sender\": \""+ socketMessage.sender +"\"}")
+    socket.send(WebSocketMessage.stringify(socketMessage))
   }
 
   def setup(socket : dom.WebSocket,

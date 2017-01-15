@@ -1,18 +1,14 @@
 package example
 
+import shared.WebSocketMessage
 import scala.scalajs.js
 import js.annotation.JSExport
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom
 import org.scalajs.dom.html
-import shared.SharedMessages
 
 @JSExport
 object ChatApp {
-  @JSExport
-  def main(): Unit = {
-    dom.document.getElementById("scalajsShoutOut").textContent = SharedMessages.itWorks
-  }
   
   @JSExport
   def chatLogic(clientAddress : String,
@@ -26,7 +22,8 @@ object ChatApp {
         val text = message.value
         message.value = ""
         val receiverAddress = if(receiver.value == null || receiver.value.isEmpty) {"all"} else {receiver.value}
-        WebSocketUtil.send(connection, WebSocketMessage(0, clientAddress, receiverAddress, text))
+        WebSocketUtil.send(connection, WebSocketMessage(MessageType.chat, clientAddress, receiverAddress, text))
+        messages.innerHTML += s"<li style='font-size: 1.5em'>Me: ${text}</li>"
     }
     
     val onConnectionOpenedHandler = { (e: dom.Event) =>
@@ -35,15 +32,21 @@ object ChatApp {
         send.onclick = { (e: dom.Event) =>
             sendFunc()
         }
-        message.onkeypress = (e: dom.KeyboardEvent) => {
+        val onpress = (e: dom.KeyboardEvent) => {
           if (e.keyCode == KeyCode.enter){
             sendFunc()
           }
         }
+        message.onkeypress = onpress
+        receiver.onkeypress = onpress
     }
     
-    val incomingMessageHandler = (e: dom.MessageEvent) =>
-          messages.innerHTML += s"<li style='font-size: 1.5em'>${e.data}</li>"
+    val incomingMessageHandler = (e: dom.MessageEvent) => {
+            val message = WebSocketMessage.parse(e.data.toString)
+            if(message.messageType == MessageType.chat && !message.sender.equals(clientAddress)) {
+                messages.innerHTML += s"<li style='font-size: 1.5em'>${message.sender}: ${message.data}</li>"
+            }
+          }
     WebSocketUtil.setup(connection, onConnectionOpenedHandler, incomingMessageHandler)
   }
 }
