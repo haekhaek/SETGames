@@ -1,4 +1,4 @@
-@(url: String, clientAddress : String)
+@(url: String, clientAddress : String, users : scala.collection.mutable.Map[String, controllers.UserRecord])
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -7,12 +7,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/bootstrap-theme.min.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
         <title>Chat Room</title>
 
     </head>
 
     <body>
+        <p>Currently active users</p>
+        <ul>
+            @for(user <- users) {
+                <li>@user._1 (@user._2)</li>
+            }
+        </ul>
         <div class="wrap">
             <div class="container-fluid">
                 <div>
@@ -30,8 +38,14 @@
 
         <div class="footer navbar-fixed-bottom">
             <div class="row">
-                <div class="col-xs-8 col-sm-9">
+                <div class="col-xs-5 col-sm-6">
                     <input id="message" placeholder="Type Here" type="text"
+                      autofocus
+                      autocomplete="off" spellcheck="false" autocorrect="off"
+                      class="form-control input-lg" />
+                </div>
+                <div class="col-xs-3 col-sm-3">
+                    <input id="receiver" placeholder="Recipient" type="text"
                       autofocus
                       autocomplete="off" spellcheck="false" autocorrect="off"
                       class="form-control input-lg" />
@@ -44,37 +58,11 @@
         </div>
         @scalajs.html.scripts("client", routes.Assets.versioned(_).toString, name => getClass.getResource(s"/public/$name") != null)
         <script language="javascript">
-            example.ChatApp().chatLogic("@url", "@clientAddress");
-            var $messages = $("#messages"),
-                        $send = $("#send"),
-                        $message = $("#message"),
-                        connection = new WebSocket("@url");
-
-                $send.prop("disabled", true);
-
-                var send = function () {
-                    var text = $message.val();
-                    $message.val("");
-                    connection.send("@clientAddress: " + text);
-                };
-
-                connection.onopen = function () {
-                    $send.prop("disabled", false);
-                    $messages.prepend($("<li class='bg-info' style='font-size: 1.5em'>Connected</li>"));
-                    $send.on('click', send);
-                    $message.keypress(function(event){
-                        var keycode = (event.keyCode ? event.keyCode : event.which);
-                        if(keycode == '13'){
-                            send();
-                        }
-                    });
-                };
-                connection.onerror = function (error) {
-                    console.log('WebSocket Error ', error);
-                };
-                connection.onmessage = function (event) {
-                    $messages.append($("<li style='font-size: 1.5em'>" + event.data + "</li>"))
-                }
+            example.ChatApp().chatLogic("@clientAddress",
+                document.getElementById("send"),
+                document.getElementById("message"),
+                document.getElementById("receiver"),
+                new WebSocket("@url"));
         </script>
     </body>
 
