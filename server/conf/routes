@@ -4,6 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET     /delete/:id                 controllers.Application.deleteUser(id : Long)
+POST    /add                        controllers.Application.addUser
 GET     /chat                       controllers.ChatController.chat
 GET     /websocket                  controllers.WebSocketController.websocket
 
