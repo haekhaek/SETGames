@@ -12,14 +12,16 @@ import javax.inject.Singleton
 @Singleton class Application @Inject() (users: Users, userService: UserService) extends Controller {
     def index = Action.async { implicit request =>
       userService.listAllUsers map { users =>
-        Ok(views.html.index(UserForm.form, users))
+        val url = routes.WebSocketController.websocket().webSocketURL()
+        Ok(views.html.index(UserForm.form, users, url))
       }
     }
 
     def addUser() = Action.async { implicit request =>
+      val url = routes.WebSocketController.websocket().webSocketURL()
       UserForm.form.bindFromRequest.fold(
         // if any error in submitted data
-        errorForm => Future.successful(Ok(views.html.index(errorForm, Seq.empty[User]))),
+        errorForm => Future.successful(Ok(views.html.index(errorForm, Seq.empty[User], url))),
         data => {
           val newUser = User(0, data.firstName, data.lastName, data.email)
           userService.addUser(newUser).map(res =>
