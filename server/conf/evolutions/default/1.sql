@@ -1,9 +1,15 @@
-# User schema
+# Users schema
 
 # --- !Ups
-create table "User" (
-  `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  `first_name` VARCHAR NOT NULL,
-  `last_name` VARCHAR NOT NULL,
-  `email` VARCHAR NOT NULL
-)
+create table "Users" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "first_name" VARCHAR NOT NULL,
+  "last_name" VARCHAR NOT NULL,
+  "user_name" VARCHAR NOT NULL UNIQUE,
+  "email" VARCHAR NOT NULL,
+  "password" VARCHAR NOT NULL
+);
+
+Insert into "Users" VALUES (0, "Sabrina", "Friedl", "Sabrina", "sabrina_friedl@gmx.de", "test");
+
+# --- !Downs

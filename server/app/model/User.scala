@@ -3,41 +3,42 @@
   */
 package model
 
-import play.api.Play
+import javax.inject.{Inject, Singleton}
+
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.slick.DatabaseConfigProvider
-import scala.concurrent.Future
 import slick.driver.JdbcProfile
 import slick.driver.SQLiteDriver.api._
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import javax.inject.Inject
-import javax.inject.Singleton
+import scala.concurrent.Future
 
-case class User(id: Long, firstName: String, lastName: String, email: String)
-
-case class UserFormData(firstName: String, lastName: String, email: String)
+case class User(id: Long, firstName: String, lastName: String, userName:String, email: String, password: String)
+case class UserData(firstName: String, lastName: String, userName: String, email: String, password:String)
 
 object UserForm {
-
   val form = Form(
     mapping(
       "firstName" -> nonEmptyText,
       "lastName" -> nonEmptyText,
-      "email" -> email
-    )(UserFormData.apply)(UserFormData.unapply)
+      "userName" -> nonEmptyText,
+      "email" -> email,
+      "password" -> nonEmptyText
+    )(UserData.apply)(UserData.unapply)
   )
 }
 
 class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
-
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def firstName = column[String]("first_name")
   def lastName = column[String]("last_name")
+  def userName = column[String]("user_name")
   def email = column[String]("email")
+  def password = column[String]("password")
 
   override def * =
-    (id, firstName, lastName, email) <>(User.tupled, User.unapply)
+    (id, firstName, lastName, userName, email, password) <>(User.tupled, User.unapply)
 }
 
 @Singleton class Users @Inject() (protected val dbConfigProvider: DatabaseConfigProvider){
@@ -66,4 +67,16 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
     dbConfig.db.run(users.result)
   }
 
+}
+
+//for login
+case class LoginData(userName: String, password: String)
+
+object LoginForm {
+  val form = Form(
+    mapping(
+      "userName" -> nonEmptyText,
+      "password" -> nonEmptyText
+    )(LoginData.apply)(LoginData.unapply)
+  )
 }
