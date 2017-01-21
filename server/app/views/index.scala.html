@@ -1,4 +1,4 @@
-@(userForm: Form[model.UserFormData],users : Seq[model.User],url : String)(implicit request: RequestHeader)
+@(userForm: Form[model.UserFormData],users : Seq[model.User],url : String, clientAddress : String)(implicit request: RequestHeader)
 @main() {
 
     <form id="user-data-form" role="form" action='@routes.Application.addUser()' method="post" class="form-horizontal" align="center" autocomplete="off">
@@ -109,7 +109,7 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.OnlineMemberList().shoutMessageLogic("Hugo",
+            example.OnlineMemberList().shoutMessageLogic("@clientAddress",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));

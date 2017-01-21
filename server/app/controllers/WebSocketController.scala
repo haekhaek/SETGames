@@ -3,6 +3,7 @@ package controllers
 import javax.inject._
 
 import shared.WebSocketMessage
+import prickle.Pickle
 import akka.actor._
 import akka.stream.Materializer
 import play.api.mvc._
@@ -17,6 +18,9 @@ class WebSocketController @Inject()(implicit actorSystem: ActorSystem,
   def websocket = WebSocket.accept[String, String] { request =>
     ActorFlow.actorRef(out => {
         UserTracker.update(request.remoteAddress, out)
+        val userList = Pickle.intoString(UserTracker.users.keys)
+        val messageType = WebSocketMessage.USER_UPDATE.id
+        UserTracker.broadcast(WebSocketMessage.stringify(WebSocketMessage(messageType,"","all",userList)))
         ClientActor.props(out)
     })
   }

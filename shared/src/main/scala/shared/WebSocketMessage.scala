@@ -11,7 +11,15 @@ case class WebSocketMessage(
     val receiver : String,
     val data : String)
     
-object WebSocketMessage {
+object WebSocketMessage extends Enumeration {
+
+  val NOTIFICATION = Value
+  val USER_UPDATE = Value
+  val CHALLENGE = Value
+  val CHALLENGE_ACCEPT = Value
+  val CHALLENGE_DECLINE = Value
+  val GAME_ACTION = Value
+  val GAME_SURRENDER = Value
 
   def parse(message : String) : WebSocketMessage = Unpickle[WebSocketMessage].fromString(message) match {
     case Success(s) => s

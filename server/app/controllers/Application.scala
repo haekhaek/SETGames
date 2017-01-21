@@ -13,15 +13,17 @@ import javax.inject.Singleton
     def index = Action.async { implicit request =>
       userService.listAllUsers map { users =>
         val url = routes.WebSocketController.websocket().webSocketURL()
-        Ok(views.html.index(UserForm.form, users, url))
+        val clientAddress = request.remoteAddress
+        Ok(views.html.index(UserForm.form, users, url, clientAddress))
       }
     }
 
     def addUser() = Action.async { implicit request =>
+      val clientAddress = request.remoteAddress
       val url = routes.WebSocketController.websocket().webSocketURL()
       UserForm.form.bindFromRequest.fold(
         // if any error in submitted data
-        errorForm => Future.successful(Ok(views.html.index(errorForm, Seq.empty[User], url))),
+        errorForm => Future.successful(Ok(views.html.index(errorForm, Seq.empty[User], url, clientAddress))),
         data => {
           val newUser = User(0, data.firstName, data.lastName, data.email)
           userService.addUser(newUser).map(res =>
