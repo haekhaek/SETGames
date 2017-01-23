@@ -17,11 +17,16 @@ import javax.inject.{Singleton, Inject}
     users.delete(id)
   }
 
-  def getUser(id: Long): Future[Option[User]] = {
-    users.get(id)
+  def getUser(userName: String): Future[Option[User]] = {
+    users.getByName(userName)
   }
 
   def listAllUsers: Future[Seq[User]] = {
     users.listAll
+  }
+
+
+  def checkPassword(userName: String, checkPassword: String): Future[Option[User]]  = {
+    users.checkPassword(userName, checkPassword)
   }
 }

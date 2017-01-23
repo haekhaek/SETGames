@@ -1,16 +1,20 @@
-@(userForm: Form[model.UserData])(implicit messages: Messages)
+@(userForm: Form[model.UserData], errorMessage: String)(implicit messages: Messages)
 @main() {
     <div align="center">
         <h1>Register at PlayGames! :)</h1>
         @helper.form(action= routes.Application.addUser(), 'method -> "post", 'id -> "login-form", 'method -> "post") {
-            @helper.inputText(userForm("firstName"))
-            @helper.inputText(userForm("lastName"))
-            @helper.inputText(userForm("userName"))
-            @helper.inputText(userForm("email"))
-            @helper.inputPassword(userForm("password"))
+            @helper.inputText(userForm("Vorname"))
+            @helper.inputText(userForm("Nachname"))
+            @helper.inputText(userForm("Username"))
+            @helper.inputText(userForm("Email"))
+            @helper.inputPassword(userForm("Passwort"))
             <button type="submit">Register!</button></div>
-
     }
+    <div align="center">
+        <br>
+        @errorMessage
+        <a href=@routes.Application.index()>Login</a>  <!-- only if errorMessage == "" -->
+    </div>
 
         <!--    <form id="user-data-form" role="form" action='@routes.Application.addUser()' method="post" class="form-horizontal" align="center" autocomplete="off">
 

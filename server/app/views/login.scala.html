@@ -1,14 +1,21 @@
-@(loginForm: Form[model.LoginData])(implicit messages: Messages)
+@(loginForm: Form[model.LoginData], errorMessage: String)(implicit messages: Messages)
+@import helper._
 
 @main(){
     <div align="center">
         <h1>Login</h1>
     @helper.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
-        @helper.inputText(loginForm("userName"))
-        @helper.inputPassword(loginForm("password"))
+        @helper.inputText(loginForm("Username"))
+        @helper.inputPassword(loginForm("Passwort"))
         <button type="submit">Go!</button>
     </div>
+    <div align="center">
+        <br>
+        @errorMessage
+    </div>
+
     <div align = "center">
+        <br>
         <a href=@routes.Application.registration()>Register</a>
     </div>
 }

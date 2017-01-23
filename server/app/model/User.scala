@@ -20,16 +20,16 @@ case class UserData(firstName: String, lastName: String, userName: String, email
 object UserForm {
   val form = Form(
     mapping(
-      "firstName" -> nonEmptyText,
-      "lastName" -> nonEmptyText,
-      "userName" -> nonEmptyText,
-      "email" -> email,
-      "password" -> nonEmptyText
+      "Vorname" -> nonEmptyText,
+      "Nachname" -> nonEmptyText,
+      "Username" -> nonEmptyText,
+      "Email" -> email,
+      "Passwort" -> nonEmptyText
     )(UserData.apply)(UserData.unapply)
   )
 }
 
-class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
+class UserTableDef(tag: Tag) extends Table[User](tag, "users") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def firstName = column[String]("first_name")
   def lastName = column[String]("last_name")
@@ -50,8 +50,8 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
   val users = TableQuery[UserTableDef]
 
   def add(user: User): Future[String] = {
-    dbConfig.db.run(users += user).map(res => "User successfully added").recover {
-      case ex: Exception => ex.getCause.getMessage
+    dbConfig.db.run(users += user).map(res => "Registration successfull!").recover {
+      case ex: Exception => "Username already exists, please try again!" //can also be different reason?!
     }
   }
 
@@ -62,6 +62,15 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
   def get(id: Long): Future[Option[User]] = {
     dbConfig.db.run(users.filter(_.id === id).result.headOption)
   }
+
+  def getByName(userName: String):  Future[Option[User]] = {
+    dbConfig.db.run(users.filter(_.userName === userName).result.headOption)
+  }
+
+  def checkPassword(userName: String, checkPassword: String): Future[Option[User]] = {
+    dbConfig.db.run(users.filter(_.userName === userName).filter(_.password === checkPassword).result.headOption)
+  }
+
 
   def listAll: Future[Seq[User]] = {
     dbConfig.db.run(users.result)
@@ -75,8 +84,8 @@ case class LoginData(userName: String, password: String)
 object LoginForm {
   val form = Form(
     mapping(
-      "userName" -> nonEmptyText,
-      "password" -> nonEmptyText
+      "Username" -> nonEmptyText,
+      "Passwort" -> nonEmptyText
     )(LoginData.apply)(LoginData.unapply)
   )
 }
