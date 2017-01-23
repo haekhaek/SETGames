@@ -1,6 +1,7 @@
 package example
 
 import shared.WebSocketMessage
+import shared.WebSocketMessage._
 import scala.scalajs.js
 import js.annotation.JSExport
 import org.scalajs.dom.ext.KeyCode
@@ -27,7 +28,8 @@ object OnlineMemberList {
     val sendFunc = () => {
         val text = message.value
         message.value = ""
-        WebSocketUtil.send(connection, WebSocketMessage(WebSocketMessage.NOTIFICATION.id, clientAddress, "all", text))
+        WebSocketUtil.send(connection,
+            WebSocketMessage(NOTIFICATION.id, clientAddress, "all", text))
     }
     
     val onConnectionOpenedHandler = { (e: dom.Event) =>
@@ -45,14 +47,9 @@ object OnlineMemberList {
     
     val incomingMessageHandler = (e: dom.MessageEvent) => {
             val message = WebSocketMessage.parse(e.data.toString)
-            if(message.messageType == WebSocketMessage.NOTIFICATION.id) {
-                messages.appendChild(div(
-                    cls:="alert alert-success notify",
-                    a(href:="#", cls:="close", data("dismiss"):="alert", aria.label:="close", "×"),
-                    strong(s"${message.sender}: "),
-                    Some(s"${message.data}")
-                ).render)
-            } else if(message.messageType == WebSocketMessage.USER_UPDATE.id) {
+            if(message.messageType == NOTIFICATION.id) {
+                displayMessage(s"${message.sender}: ", s"${message.data}", "success")
+            } else if(message.messageType == USER_UPDATE.id) {
                 Unpickle[Iterable[String]].fromString(message.data) match {
                     case Success(activeMembers) => {
                         memberList.innerHTML = ""
@@ -61,7 +58,8 @@ object OnlineMemberList {
                         } yield {
                             if(!member.equals(clientAddress)) {
                                 val clickListener = { (e: dom.Event) =>
-                                    WebSocketUtil.send(connection, WebSocketMessage(WebSocketMessage.CHALLENGE.id, clientAddress, member, ""))
+                                    WebSocketUtil.send(connection,
+                                    WebSocketMessage(CHALLENGE.id, clientAddress, member, ""))
                                 }
                                 memberList.appendChild(li(div(Some(member),
                                     button("Challenge!", onclick:=clickListener))).render)
@@ -70,42 +68,44 @@ object OnlineMemberList {
                     }
                     case Failure(e) => throw new IllegalArgumentException(e.getMessage)
                 }
-            } else if(message.messageType == WebSocketMessage.CHALLENGE.id) {
-                val challengeDiv = div(
-                    cls:="alert alert-warning notify",
-                    strong(s"${message.sender} "),
-                    Some("wants to play against you. ")
-                ).render
-                challengeDiv.appendChild(a("[Accept]", onclick:={(e: dom.Event) => {
-                        challengeDiv.style.display = "none"
-                        WebSocketUtil.send(
-                            connection,
-                            WebSocketMessage(WebSocketMessage.CHALLENGE_ACCEPT.id, message.receiver, message.sender, ""))
-                    }}).render)
-                challengeDiv.appendChild(a("[Decline]", onclick:={(e: dom.Event) => {
-                        challengeDiv.style.display = "none"
-                        WebSocketUtil.send(
-                            connection,
-                            WebSocketMessage(WebSocketMessage.CHALLENGE_DECLINE.id, message.receiver, message.sender, ""))
-                    }}).render)
+            } else if(message.messageType == CHALLENGE.id) {
+                val challengeDiv = alertDiv(s"${message.sender} ", "wants to play against you. ", "warning")
+                challengeDiv.appendChild(challengeOption("[Accept]", CHALLENGE_ACCEPT.id,
+                    challengeDiv, connection, message))
+                challengeDiv.appendChild(challengeOption("[Decline]", CHALLENGE_DECLINE.id,
+                    challengeDiv, connection, message))
                 messages.appendChild(challengeDiv)
-            } else if(message.messageType == WebSocketMessage.CHALLENGE_ACCEPT.id) {
-                messages.appendChild(div(
-                    cls:="alert alert-warning notify",
-                    a(href:="#", cls:="close", data("dismiss"):="alert", aria.label:="close", "×"),
-                    strong(s"${message.sender} "),
-                    Some("has accepted your challenge.")
-                ).render)
-            } else if(message.messageType == WebSocketMessage.CHALLENGE_DECLINE.id) {
-                messages.appendChild(div(
-                    cls:="alert alert-warning notify",
-                    a(href:="#", cls:="close", data("dismiss"):="alert", aria.label:="close", "×"),
-                    strong(s"${message.sender} "),
-                    Some("has declined your challenge.")
-                ).render)
+            } else if(message.messageType == CHALLENGE_ACCEPT.id) {
+                displayMessage(s"${message.sender} ", "has accepted your challenge.", "warning")
+            } else if(message.messageType == CHALLENGE_DECLINE.id) {
+                displayMessage(s"${message.sender} ", "has declined your challenge.", "warning")
             }
             ()
           }
     WebSocketUtil.setup(connection, onConnectionOpenedHandler, incomingMessageHandler)
   }
+  
+  def challengeOption(caption : String,
+                    messageType : Int,
+                    challengeDiv : dom.html.Div,
+                    connection : dom.WebSocket,
+                    message : WebSocketMessage) =
+    a(caption, onclick:={(e: dom.Event) => {
+        challengeDiv.style.display = "none"
+        WebSocketUtil.send(
+            connection,
+            WebSocketMessage(messageType, message.receiver, message.sender, ""))
+    }}).render
+  
+  def displayMessage(title: String, message : String, alertType : String) {
+    val messages = dom.document.getElementById("notifications")
+    messages.appendChild(alertDiv(title, message, alertType))
+  }
+  
+  def alertDiv(title: String, message : String, alertType : String) = div(
+        cls:=s"alert alert-${alertType} notify",
+        a(href:="#", cls:="close", data("dismiss"):="alert", aria.label:="close", "×"),
+        strong(s"${title} "),
+        Some(message)
+    ).render
 }
