@@ -18,12 +18,12 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
     val loggedIn = request.session.get("userName") //TODO
     //val loggedIn = None
     if (loggedIn != None){
-      Ok(views.html.home(loggedIn.get))
+      val url = routes.WebSocketController.websocket().webSocketURL()
+      Ok(views.html.home(loggedIn.get, url))
     }
     else
       Ok(views.html.login(LoginForm.form, ""))
   }
-
 
   def login() = Action.async { implicit request =>
     LoginForm.form.bindFromRequest.fold(
