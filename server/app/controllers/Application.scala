@@ -24,7 +24,6 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
       Ok(views.html.login(LoginForm.form, ""))
   }
 
-
   def login() = Action.async { implicit request =>
     LoginForm.form.bindFromRequest.fold(
       formWithErrors => Future(BadRequest(views.html.login(formWithErrors, "Please fill out all fields!"))),

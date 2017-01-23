@@ -34,13 +34,15 @@ lazy val client = (project in file("client")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(scalaVersion := scalaV,
     libraryDependencies ++= Seq(
-        "com.github.benhutchison" %%% "prickle" % "1.1.13"
+        "com.github.benhutchison" %%% "prickle" % "1.1.13",
+        "com.lihaoyi" %%% "scalatags" % "0.6.2"
     )
   ).
   jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
+scalacOptions += "-feature"
 
 // loads the server project at sbt startup
 onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
