@@ -1,7 +1,9 @@
 package controllers
 
 import akka.actor._
+import shared.WebSocketMessage
 import scala.collection.mutable.{Map, HashMap}
+import prickle.Pickle
 
 case class UserRecord(channel : ActorRef, lastActivityTimestamp : Long)
 
@@ -31,10 +33,18 @@ object UserTracker {
     
     def update(userId : String, channel : ActorRef) = users.synchronized {
         users.put(userId, UserRecord(channel, System.currentTimeMillis))
+        publishMemberList()
     }
     
     def remove(userId : String) = users.synchronized {
         users.remove(userId)
+        publishMemberList()
+    }
+    
+    def publishMemberList() = {
+        val userList = Pickle.intoString(users.keys)
+        val messageType = WebSocketMessage.USER_UPDATE.id
+        broadcast(WebSocketMessage.stringify(WebSocketMessage(messageType,"","all",userList)))
     }
 
     def broadcast(message : String) {

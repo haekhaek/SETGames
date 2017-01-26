@@ -52,6 +52,6 @@ object ChatApp {
             }
             ()
           }
-    WebSocketUtil.setup(connection, onConnectionOpenedHandler, incomingMessageHandler)
+    //WebSocketUtil.setup(connection, onConnectionOpenedHandler, incomingMessageHandler)
   }
 }

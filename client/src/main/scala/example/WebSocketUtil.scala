@@ -21,9 +21,12 @@ object WebSocketUtil {
 
   def setup(socket : dom.WebSocket,
             onConnectionOpenedHandler : dom.Event => Unit,
-            incomingMessageHandler : dom.MessageEvent => Unit) {
+            incomingMessageHandler : WebSocketMessageHandler) {
     socket.onopen = onConnectionOpenedHandler
-    socket.onmessage = incomingMessageHandler
+    socket.onmessage = (e: dom.MessageEvent) => {
+        val message = WebSocketMessage.parse(e.data.toString)
+        incomingMessageHandler.handle(message)
+    }
   }
 
 }

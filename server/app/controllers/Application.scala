@@ -43,7 +43,8 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
       })
   }
 
-  def logout() = Action.async {
+  def logout() = Action.async { implicit request =>
+    request.session.get("userName").map(u => UserTracker.remove(u))
     Future.successful(Redirect(routes.Application.index()).withNewSession)
   }
 
