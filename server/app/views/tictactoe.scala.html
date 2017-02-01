@@ -1,11 +1,10 @@
 @(username: String, url : String)
 
-@nochatmain(){
-  Hello @username! Welcome to PlayGames! :)
+@main(){
+  Hello @username! Welcome to TicTacToe! :)
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
-    <a href=@routes.GameController.tictactoe()>[TicTacToe]</a>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             example.OnlineMemberList().shoutMessageLogic("@username",

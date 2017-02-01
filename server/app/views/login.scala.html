@@ -1,7 +1,7 @@
 @(loginForm: Form[model.LoginData], errorMessage: String)(implicit messages: Messages)
 @import helper._
 
-@main(){
+@nochatmain(){
     <div align="center">
         <h1>Login</h1>
     @helper.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {

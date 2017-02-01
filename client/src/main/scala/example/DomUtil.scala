@@ -3,6 +3,7 @@ package example
 import shared.WebSocketMessage
 import shared.WebSocketMessage._
 import scala.scalajs.js
+import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scalatags.JsDom.all._
@@ -13,6 +14,32 @@ case class DomMessage(title: String, message : String, alertType : String)
 object DomUtil {
 
     val notificationId = "notifications"
+
+    def setupShoutMessenger(
+        userName : String,
+        send : html.Button,
+        message : html.Input,
+        connection : dom.WebSocket) : dom.Event => Unit = {
+        send.disabled = true
+        val sendFunc = () => {
+            val text = message.value
+            message.value = ""
+            WebSocketUtil.send(connection,
+                WebSocketMessage(NOTIFICATION.id, userName, "all", text))
+        }
+        return { (e: dom.Event) =>
+            send.disabled = false
+            send.onclick = { (e: dom.Event) =>
+                sendFunc()
+            }
+            val onpress = (e: dom.KeyboardEvent) => {
+              if (e.keyCode == KeyCode.enter){
+                sendFunc()
+              }
+            }
+            message.onkeypress = onpress
+        }
+    }
     
     def updateMemberList(
         connection : dom.WebSocket,
