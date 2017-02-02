@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject._
 
+import model.{Game, StupidButtonGame}
 import shared.WebSocketMessage
 import akka.actor._
 import akka.stream.Materializer
@@ -21,6 +22,15 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
       val url = routes.WebSocketController
         .websocket().webSocketURL()
       Ok(views.html.tictactoe(userId, url))
+  }
+  
+  def stupidbutton = Action { implicit request =>
+      val loggedIn = request.session.get("userName")
+      val userId = loggedIn.get
+      UserTracker.updateGame(userId, Some(new StupidButtonGame()))
+      val url = routes.WebSocketController
+        .websocket().webSocketURL()
+      Ok(views.html.stupidbutton(userId, url))
   }
 
 }

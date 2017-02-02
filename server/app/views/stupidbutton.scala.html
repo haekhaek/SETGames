@@ -1,15 +1,14 @@
 @(username: String, url : String)
 
-@nochatmain(){
-  Hello @username! Welcome to PlayGames! :)
+@main(){
+  Hello @username! Welcome to StupidButton! :)
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
-    <a href=@routes.GameController.tictactoe()>[TicTacToe]</a>
-    <a href=@routes.GameController.stupidbutton()>[StupidButton]</a>
+    <button id="stupidbutton" class="btn btn-primary disabled">Click Me</button>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.OnlineMemberList().shoutMessageLogic("@username",
+            example.StupidButtonApp().shoutMessageLogic("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));

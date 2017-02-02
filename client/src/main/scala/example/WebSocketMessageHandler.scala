@@ -31,6 +31,7 @@ trait ChallengeHandler extends WebSocketMessageHandler {
     override def handle(message : WebSocketMessage) = {
         if(message.messageType == CHALLENGE.id) {
             DomUtil.displayChallenge(connection, message)
+            DomUtil.deactivateChallengeButtons(userName, connection)
         }
         super.handle(message)
     }
@@ -43,6 +44,7 @@ trait ChallengeAcceptHandler extends WebSocketMessageHandler {
                 s"${message.sender} ",
                 "has accepted your challenge.",
                 "warning"))
+            DomUtil.deactivateChallengeButtons(userName, connection)
         }
         super.handle(message)
     }
@@ -55,6 +57,7 @@ trait ChallengeDeclinedHandler extends WebSocketMessageHandler {
                 s"${message.sender} ",
                 "has declined your challenge.",
                 "warning"))
+            DomUtil.activateChallengeButtons(userName, connection)
         }
         super.handle(message)
     }
