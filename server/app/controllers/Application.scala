@@ -13,7 +13,7 @@ import scala.concurrent.Future
 //class Application extends Controller {
 class Application @Inject()(val messagesApi: MessagesApi, users: Users, userService: UserService)
   extends Controller with I18nSupport{
-  
+
   def index = Action { implicit request =>
     val loggedIn = request.session.get("userName") //TODO
     //val loggedIn = None
