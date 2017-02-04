@@ -79,6 +79,16 @@ class ClientActor(out : ActorRef) extends Actor {
                             sendMessageToPlayers(GAME_UPDATE.id, 
                                 socketMessage.receiver,
                                 socketMessage.sender, stateMessage)
+                            if(!state.gameState.equals("ongoing")) {
+                                UserTracker.updateGame(
+                                    socketMessage.receiver,
+                                    player1.game.map(g => g.getClass.newInstance),
+                                    player1.channel)
+                                UserTracker.updateGame(
+                                    socketMessage.sender,
+                                    player1.game.map(g => g.getClass.newInstance),
+                                    player2.channel)
+                            }
                         })
                         case Failure(e) => UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
                                 ERROR.id, socketMessage.sender, socketMessage.receiver, e.getMessage)))

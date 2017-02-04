@@ -7,8 +7,15 @@ trait FieldStupidButton extends Field{
 }
 
 trait UpdateStupidButton extends Update[Int] {
+  var calls : Int = 0
   override var availableActions: List[Action[Int]] = List()
-  override def update(action: Action[Int], f: Array[Array[Char]], p: Player, s:State) : State = s
+  override def update(action: Action[Int], f: Array[Array[Char]], p: Player, s:State) : State = {
+    calls += 1
+    if(calls >= 10) {
+        s.gameState = "won"
+    }
+    s
+  }
 }
 
 class StupidButtonGame extends GameWrapper {

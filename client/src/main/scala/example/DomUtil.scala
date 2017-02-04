@@ -16,6 +16,8 @@ object DomUtil {
     val notificationId = "notifications"
     
     var cachedActiveMembers : Iterable[String] = List()
+    
+    var playingGame : Boolean = false
 
     def setupShoutMessenger(
         userName : String,
@@ -48,7 +50,9 @@ object DomUtil {
         userName : String,
         activeMembers : Iterable[String]) {
         cachedActiveMembers = activeMembers
-        activateChallengeButtons(userName, connection)
+        if(!playingGame) {
+            activateChallengeButtons(userName, connection)
+        }
     }
     
     def deactivateChallengeButtons(
@@ -82,6 +86,7 @@ object DomUtil {
                     WebSocketUtil.send(connection,
                     WebSocketMessage(CHALLENGE.id, userName, member, ""))
                     deactivateChallengeButtons(userName, connection)
+                    clearMessages
                     displayMessage(DomMessage("You ",
                     s"are challenging ${member}. ",
                     "warning"))
@@ -102,17 +107,19 @@ object DomUtil {
             "wants to play against you. ",
             "warning"))
         challengeDiv.appendChild(challengeOption("[Accept]", CHALLENGE_ACCEPT.id,
-        challengeDiv, connection, message,
-        s => {
-            deactivateChallengeButtons(s, connection)
-            displayMessage(DomMessage("You ",
-            s"accepted ${message.sender}'s challenge. ",
-            "warning"))
-            setCurrentPlayerLabel("O")
-        }))
+            challengeDiv, connection, message,
+            s => {
+                playingGame = true
+                deactivateChallengeButtons(s, connection)
+                clearMessages
+                displayMessage(DomMessage("You ",
+                s"accepted ${message.sender}'s challenge. ",
+                "warning"))
+                setCurrentPlayerLabel("O")
+            }))
         challengeDiv.appendChild(challengeOption("[Decline]", CHALLENGE_DECLINE.id,
-        challengeDiv, connection, message,
-        activateChallengeButtons(_, connection)))
+            challengeDiv, connection, message,
+            activateChallengeButtons(_, connection)))
         messages.appendChild(challengeDiv)
     }
     
@@ -134,6 +141,11 @@ object DomUtil {
         val messages = dom.document.getElementById(notificationId)
         messages.appendChild(alertDiv(m))
     }
+    
+    def clearMessages = {
+        val messages = dom.document.getElementById(notificationId)
+        messages.innerHTML = ""
+    }
   
     def alertDiv(m : DomMessage) = div(
             cls:=s"alert alert-${m.alertType} notify",
@@ -141,6 +153,10 @@ object DomUtil {
             strong(s"${m.title} "),
             Some(m.message)
         ).render
+    
+    def setPlayingGame(isPlaying : Boolean) = {
+        playingGame = isPlaying
+    }
 
     def currentPlayerLabel : String = dom.
         document.getElementById("currentPlayerLabel").innerHTML
