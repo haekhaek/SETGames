@@ -19,6 +19,7 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
     //val loggedIn = None
     if (loggedIn != None){
       val url = routes.WebSocketController.websocket().webSocketURL()
+      UserTracker.updateGame(loggedIn.get, None)
       Ok(views.html.home(loggedIn.get, url))
     }
     else
@@ -44,6 +45,7 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
   }
 
   def logout() = Action.async { implicit request =>
+    UserTracker.updateGame(request.session.get("userName").get, None)
     request.session.get("userName").map(u => UserTracker.remove(u))
     Future.successful(Redirect(routes.Application.index()).withNewSession)
   }

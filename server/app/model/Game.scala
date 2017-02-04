@@ -4,6 +4,8 @@
 
 package model
 
+import shared.{GameWrapper, ActionWrapper, StateWrapper}
+
 trait Game[T] {
   this : Field with Update[T] =>
   var state: State = new State
@@ -188,6 +190,25 @@ case class Column(c: Int){
   val col: Int = c
 }
 
+class TicTacToeGame extends GameWrapper {
+
+    val game = new Game[Location] with UpdateTicTacToe with FieldTicTacToe {}
+
+    def getAvailableActionWrappers(): List[ActionWrapper] =
+        game.getAvailableActions.map(a => ActionWrapper(List(a.data.r,a.data.c))).toList
+    
+    def updateStateWrapper(action: ActionWrapper): StateWrapper = {
+        val unwrappedAction = Action(Location(action.data.toList(0),action.data.toList(1)))
+        game.updateGameState(unwrappedAction)
+        currentState
+    }
+    
+    def currentState : StateWrapper = {
+        StateWrapper(game.state.gameState, game.player.playerLabel,
+            game.field.toList.map(a => a.toList).toList)
+    }
+
+}
 
 object main extends App{
   println("******NEW GAME*********")

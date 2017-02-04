@@ -85,6 +85,7 @@ object DomUtil {
                     displayMessage(DomMessage("You ",
                     s"are challenging ${member}. ",
                     "warning"))
+                    setCurrentPlayerLabel("X")
                 }
                 memberList.appendChild(li(div(Some(member),
                 button("Challenge!", onclick:=clickListener, cls:="buttonChallenge"))).render)
@@ -107,6 +108,7 @@ object DomUtil {
             displayMessage(DomMessage("You ",
             s"accepted ${message.sender}'s challenge. ",
             "warning"))
+            setCurrentPlayerLabel("O")
         }))
         challengeDiv.appendChild(challengeOption("[Decline]", CHALLENGE_DECLINE.id,
         challengeDiv, connection, message,
@@ -122,10 +124,10 @@ object DomUtil {
                     func : String => Unit) =
         a(caption, onclick:={(e: dom.Event) => {
             challengeDiv.style.display = "none"
+            func(message.receiver)
             WebSocketUtil.send(
                 connection,
                 WebSocketMessage(messageType, message.receiver, message.sender, ""))
-            func(message.receiver)
         }}).render
 
     def displayMessage(m : DomMessage) {
@@ -140,4 +142,10 @@ object DomUtil {
             Some(m.message)
         ).render
 
+    def currentPlayerLabel : String = dom.
+        document.getElementById("currentPlayerLabel").innerHTML
+    
+    def setCurrentPlayerLabel(label : String) = {
+        dom.document.getElementById("currentPlayerLabel").innerHTML = label
+    }
 }

@@ -14,6 +14,7 @@ object StupidButtonApp {
         userName : String,
         send : html.Button,
         message : html.Input,
+        stupidButton : html.Button,
         connection : dom.WebSocket) {
     val onConnectionOpenedHandler = 
         DomUtil.setupShoutMessenger(userName, send, message, connection)
@@ -24,6 +25,10 @@ object StupidButtonApp {
             with ChallengeHandler
             with ChallengeAcceptHandler
             with ChallengeDeclinedHandler
-            with UserUpdateHandler)
+            with UserUpdateHandler
+            //with ErrorHandler
+            with StupidButtonUpdateHandler {
+                override val button = stupidButton
+            })
   }
 }

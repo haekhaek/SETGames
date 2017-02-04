@@ -17,6 +17,7 @@
   <body>
   <div id="notifications"></div>
   @scalajs.html.scripts("client", routes.Assets.versioned(_).toString, name => getClass.getResource(s"/public/$name") != null)
+  <div id="currentPlayerLabel" style="display:none"></div>
   @content
    <div class="panel-group">
       <div class="panel panel-default pull-right pull-center">

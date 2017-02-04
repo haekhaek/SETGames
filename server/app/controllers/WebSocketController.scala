@@ -63,33 +63,48 @@ class ClientActor(out : ActorRef) extends Actor {
                 player2 <- UserTracker.users.get(socketMessage.sender)
             } yield {
                 if(socketMessage.messageType == WebSocketMessage.CHALLENGE_ACCEPT.id) {
-                    player1.game = player2.game
+                    UserTracker.updateGame(socketMessage.receiver, player1.game, player1.channel)
+                    UserTracker.updateGame(socketMessage.sender, player1.game, player2.channel)
+                    player1.game.map(g => {
+                        val stateMessage = Pickle.intoString(g.currentState)
+                        sendMessageToPlayers(GAME_UPDATE.id, 
+                        socketMessage.receiver,
+                        socketMessage.sender, stateMessage)
+                    })
                 } else if(socketMessage.messageType == WebSocketMessage.GAME_ACTION.id) {
-                    Unpickle[ActionWrapper].fromString(message) match {
+                    Unpickle[ActionWrapper].fromString(socketMessage.data) match {
                         case Success(actionWrapper) => player1.game.map(g => {
                             val state = g.updateStateWrapper(actionWrapper)
                             val stateMessage = Pickle.intoString(state)
-                            UserTracker.sendTo(socketMessage.sender, stringify(WebSocketMessage(
-                                GAME_UPDATE.id, socketMessage.receiver, socketMessage.sender, stateMessage)))
-                            UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
-                                GAME_UPDATE.id, socketMessage.sender, socketMessage.receiver, stateMessage)))
+                            sendMessageToPlayers(GAME_UPDATE.id, 
+                                socketMessage.receiver,
+                                socketMessage.sender, stateMessage)
                         })
                         case Failure(e) => UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
-                                ERROR.id, socketMessage.sender, socketMessage.receiver, "Illegal action!")))
+                                ERROR.id, socketMessage.sender, socketMessage.receiver, e.getMessage)))
                     }
                 } else if(socketMessage.messageType == WebSocketMessage.GAME_SURRENDER.id) {
                     player1.game.map(g => {
                             val stateMessage = Pickle.intoString(g.currentState)
-                            UserTracker.sendTo(socketMessage.sender, stringify(WebSocketMessage(
-                                GAME_UPDATE.id, socketMessage.receiver, socketMessage.sender, stateMessage)))
-                            UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
-                                GAME_UPDATE.id, socketMessage.sender, socketMessage.receiver, stateMessage)))
+                            sendMessageToPlayers(GAME_UPDATE.id, 
+                                socketMessage.receiver,
+                                socketMessage.sender, stateMessage)
                     })
                 }
             }
-            
             UserTracker.sendTo(m, message)
         }
+    }
+    
+    def sendMessageToPlayers(
+        messageType : Int,
+        player1 : String,
+        player2 : String,
+        message : String) {
+        UserTracker.sendTo(player1, stringify(WebSocketMessage(
+            messageType, player2, player1, message)))
+        UserTracker.sendTo(player2, stringify(WebSocketMessage(
+            messageType, player1, player2, message)))
     }
 
 }
