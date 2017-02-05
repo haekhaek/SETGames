@@ -5,8 +5,11 @@
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
+    <div id="gameContainer" class="center-block"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            example.TestTicTacToe().createGameField();
+
             example.OnlineMemberList().shoutMessageLogic("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
