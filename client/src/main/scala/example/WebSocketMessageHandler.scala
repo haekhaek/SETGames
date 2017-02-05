@@ -87,10 +87,9 @@ trait UserUpdateHandler extends WebSocketMessageHandler {
 trait ErrorHandler extends WebSocketMessageHandler {
     override def handle(message : WebSocketMessage) = {
         if(message.messageType == GAME_ACTION.id) {
-            DomUtil.displayMessage(DomMessage(
-            "Error: ",
-            s"${message.data}",
-            "error"))
+            DomUtil.displayMessage(DomMessage("Error: ",
+              s"${message.data}",
+              "error"))
         }
         super.handle(message)
     }
@@ -114,26 +113,11 @@ trait GameUpdateHandler extends WebSocketMessageHandler {
                     val draw = state.gameState.equals("even")
                     deactivateUpdate(message)
                     if(iWon) {
-                        DomUtil.displayMessage(DomMessage(
-                            "Congratulations! ",
-                            "You have won this game!",
-                            "success"))
-                        DomUtil.activateChallengeButtons(userName, connection)
-                        DomUtil.setPlayingGame(false)
+                        handleGameOver("Congratulations! ", "You have won this game!", "success")
                     } else if(iLost) {
-                        DomUtil.displayMessage(DomMessage(
-                            "Game Over! ",
-                            "You have lost!",
-                            "danger"))
-                        DomUtil.activateChallengeButtons(userName, connection)
-                        DomUtil.setPlayingGame(false)
+                        handleGameOver("Game Over! ", "You have lost!", "danger")
                     } else if(draw) {
-                        DomUtil.displayMessage(DomMessage(
-                            "It is a draw! ",
-                            "No one has won or lost!",
-                            "warning"))
-                        DomUtil.activateChallengeButtons(userName, connection)
-                        DomUtil.setPlayingGame(false)
+                        handleGameOver("It is a draw! ","No one has won or lost!","warning")
                     } else if(myTurn) {
                         activateUpdate(message)
                         setupUpdateLogic(message)
@@ -144,6 +128,16 @@ trait GameUpdateHandler extends WebSocketMessageHandler {
             }
         }
         super.handle(message)
+    }
+
+    def handleGameOver(caption : String, message : String, messageType : String): Unit = {
+      DomUtil.clearMessages
+      DomUtil.displayMessage(DomMessage(
+        caption,
+        message,
+        messageType))
+      DomUtil.activateChallengeButtons(userName, connection)
+      DomUtil.setPlayingGame(false)
     }
 }
 
