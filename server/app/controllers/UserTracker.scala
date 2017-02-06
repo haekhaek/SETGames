@@ -39,10 +39,13 @@ object UserTracker {
         publishMemberList(game)
     }
     
-    def updateGame(userId : String, game : Option[GameWrapper]) = users.synchronized {
+    def updateGame(userId : String, game : Option[GameWrapper], channel : ActorRef = null) = users.synchronized {
         users.get(userId) match {
-            case Some(r) => users.put(userId, UserRecord(r.channel, r.lastActivityTimestamp, game))
-            case None => users.put(userId, UserRecord(null, System.currentTimeMillis, game))
+            case Some(r) => {
+                users.put(userId, UserRecord(r.channel, r.lastActivityTimestamp, game))
+                publishMemberList(r.game)
+            }
+            case None => users.put(userId, UserRecord(channel, System.currentTimeMillis, game))
         }
     }
     
@@ -56,9 +59,10 @@ object UserTracker {
     }
     
     def publishMemberList(game : Option[GameWrapper]) = {
-        val userList = Pickle.intoString(users.keys)
+        val userList = Pickle.intoString(filteredUsersByGame(game).keys)
         val messageType = WebSocketMessage.USER_UPDATE.id
-        broadcastTo(WebSocketMessage.stringify(WebSocketMessage(messageType,"","all",userList)), game)
+        broadcastTo(WebSocketMessage.stringify(
+            WebSocketMessage(messageType,"","all",userList)), game)
     }
 
     def broadcast(message : String) {
@@ -67,14 +71,18 @@ object UserTracker {
         }})
     }
     
-    def broadcastTo(message : String, game : Option[GameWrapper]) {
-        users.filter({case (u,r) => (for {
+    def filteredUsersByGame(game : Option[GameWrapper]) = users.filter({case (u,r) => (for {
             g1 <- r.game
             g2 <- game
         } yield {
             g1.getClass.equals(g2.getClass)
-        }).getOrElse(false)}).foreach({case (u, r) => {
-            r.channel ! message
+        }).getOrElse(false)})
+    
+    def broadcastTo(message : String, game : Option[GameWrapper]) {
+        filteredUsersByGame(game).foreach({case (u, r) => {
+            if(r.channel != null) {
+                r.channel ! message
+            }
         }})
     }
 
