@@ -1,0 +1,21 @@
+@(users : Seq[model.User])(implicit request: RequestHeader)
+@main() {
+  <div align = "center", class="user-display" >
+    <fieldset>
+      <legend align="center"><h3>User scores</h3></legend>
+      <table cellspacing="20">
+        <tr>
+          <th>User</th>
+          <th>Elo-Score</th>
+        </tr>
+        @for(user <- users){
+          <tr>
+            <td>@user.userName</td>
+            <td>@user.score</td>
+          </tr>
+        }
+      </table>
+    </fieldset>
+  </div>
+
+}

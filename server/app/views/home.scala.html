@@ -1,10 +1,17 @@
 @(username: String, url : String)
 
-@main(){
-  Hello @username! Welcome to PlayGames! :)
+@nochatmain(){
     <div align = "center">
-        <a href=@routes.Application.logout()>Logout</a>
+        Hello @username! Welcome to PlayGames! :) <br>
+        <a href=@routes.GameController.tictactoe()>[TicTacToe]</a> <br>
+        <a href=@routes.GameController.tictactoe()>[4 Gewinnt]</a>
     </div>
+
+    <div align = "center">
+        <a href=@routes.Application.scores()>Show Highscores</a> <br>
+    </div>
+    <div align = "right">
+    <a href=@routes.Application.logout()>Logout</a>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             example.OnlineMemberList().shoutMessageLogic("@username",
@@ -13,4 +20,5 @@
                 new WebSocket("@url"));
         }, false);
     </script>
+    </div>
 }

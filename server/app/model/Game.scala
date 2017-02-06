@@ -4,7 +4,7 @@
 
 package model
 
-trait Game[T] {
+class Game[T] {
   this : Field with Update[T] =>
   var state: State = new State
   var player: Player = new Player
