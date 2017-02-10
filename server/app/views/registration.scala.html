@@ -1,12 +1,15 @@
-@(userForm: Form[model.UserData], errorMessage: String)(implicit messages: Messages)
+@(userForm: Form[model.UserData], successMessage: String, errorMessage: String)(implicit messages: Messages)
 
 @implicitFC = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 @nochatmain() {
+    <div align="center" style="text-align: center; color: green; margin: auto;">
+        @successMessage
+    </div>
     <div align="center" style="text-align: center; color: red; margin: auto;">
         @errorMessage
     </div>
     <div class="panel panel-primary" style="text-align: center; width:40%; margin: auto;">
-        <div class="panel-heading">Register</div>
+        <div class="panel-heading"><h3><span class="glyphicon glyphicon-user"></span> Register</h3></div>
         <div class="panel-body">
             @b3.form(action= routes.Application.addUser(), 'method -> "post", 'id -> "login-form", 'method -> "post") {
             @b3.text(userForm("Vorname"),'_label -> "First Name", 'placeholder -> "Your First Name")
@@ -14,10 +17,12 @@
             @b3.text(userForm("Username"),'_label -> "Username", 'placeholder -> "Your Username")
             @b3.text(userForm("Email"),'_label -> "E-Mail Address", 'placeholder -> "Your E-Mail Address")
             @b3.password(userForm("Passwort"),'_label -> "Password", 'placeholder -> "Your Password")
-            <button type="submit" class="btn btn-success">Register!</button></div>
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-user"></span> Register!
+            </button></div>
     }
     </div>
     <div align="center">
-        <a href=@routes.Application.index()>Login</a>
+        <a href=@routes.Application.index()><span class="glyphicon glyphicon-log-in"></span> Login</a>
     </div>
 }

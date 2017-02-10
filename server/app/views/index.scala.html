@@ -1,5 +1,5 @@
-@(users : Seq[model.User])(implicit request: RequestHeader)
-@main() {
+@(users : Seq[model.User], username : String)(implicit request: RequestHeader)
+@main(username,"") {
     <div class="user-display" >
         <fieldset>
             <legend align="center"><h3>Registrierte User</h3></legend>

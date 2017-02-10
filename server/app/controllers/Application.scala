@@ -10,13 +10,11 @@ import service.UserService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//class Application extends Controller {
 class Application @Inject()(val messagesApi: MessagesApi, users: Users, userService: UserService)
   extends Controller with I18nSupport{
 
   def index = Action { implicit request =>
-    val loggedIn = request.session.get("userName") //TODO
-    //val loggedIn = None
+    val loggedIn = request.session.get("userName")
     if (loggedIn != None){
       val url = routes.WebSocketController.websocket().webSocketURL()
       UserTracker.updateGame(loggedIn.get, None)
@@ -31,10 +29,6 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
       formWithErrors => Future(BadRequest(views.html.login(formWithErrors, "Please fill out all fields!"))),
       data => {
         val logInUser = userService.checkPassword(data.userName, data.password) //Future[Object[User]]
-        //for {
-          //u <- logInUser
-        //} yield u?
-
         logInUser.flatMap {
           case Some(u) => {Future.successful(Redirect(routes.Application.index())
                 .withSession(request.session + ("userName" -> data.userName)))
@@ -51,20 +45,20 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
   }
 
   def registration() = Action { implicit request =>
-    Ok(views.html.registration(UserForm.form, ""))
+    Ok(views.html.registration(UserForm.form, "", ""))
   }
 
   def addUser() = Action.async { implicit request =>
     UserForm.form.bindFromRequest.fold(
-      formWithErrors => Future(BadRequest(views.html.registration(formWithErrors, "Please fill in form correctly"))),
+      formWithErrors => Future(BadRequest(views.html.registration(formWithErrors, "", "Please fill in form correctly"))),
       data => {
         val newUser = User(0, data.firstName, data.lastName, data.userName, data.email, data.password, 1000)
 
        val existing = userService.getUser(newUser.userName)
         existing.flatMap {
-          case Some(x) => Future.successful(Ok(views.html.registration(UserForm.form, "Sorry, Username" + newUser.userName + "already exists. Please try again!")))
+          case Some(x) => Future.successful(Ok(views.html.registration(UserForm.form, "", "Sorry, Username " + newUser.userName + " already exists. Please try again!")))
           case None => userService.addUser(newUser).map {
-            res => Ok(views.html.registration(UserForm.form, res))
+            res => Ok(views.html.registration(UserForm.form, res, ""))
           }
         }
       }
@@ -78,8 +72,8 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
   }
 
   def scores = Action.async { implicit request =>
-    userService.listScores.map { user =>
-      Ok(views.html.scores(user))
+    userService.listScores.map { users =>
+      Ok(views.html.scores(users, request.session.get("userName").getOrElse("")))
     }
   }
 }

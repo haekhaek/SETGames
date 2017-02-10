@@ -92,8 +92,13 @@ object DomUtil {
                     "warning"))
                     setCurrentPlayerLabel("X")
                 }
-                memberList.appendChild(li(div(Some(member),
-                button("Challenge!", onclick:=clickListener, cls:="buttonChallenge"))).render)
+                memberList.appendChild(li(cls:="list-group-item",div(cls:="row",
+                    div(cls:="col-sm-8", style:="font-size: 16px; position: relative; top: 50%; transform: translateY(30%); ", Some(member)),
+                    div(cls:="col-sm-4",button("Challenge!",
+                    onclick:=clickListener,
+                    cls:="btn btn-warning buttonChallenge"))
+                    )
+                ).render)
             }
         }
     }

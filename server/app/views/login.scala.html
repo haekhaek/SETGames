@@ -6,19 +6,19 @@
         @errorMessage
     </div>
     <div class="panel panel-primary" style="text-align: center; width:40%; margin: auto;">
-        <div class="panel-heading">Login</div>
+        <div class="panel-heading"><h3><span class="glyphicon glyphicon-log-in"></span> Login</h3></div>
         <div class="panel-body">
             @b3.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
             @b3.text(loginForm("Username"), '_label -> "Username", 'placeholder -> "Your Username")
-            @b3.password(loginForm("Password"), '_label -> "Password", 'placeholder -> "Your Password")
+            @b3.password(loginForm("Passwort"), '_label -> "Password", 'placeholder -> "Your Password")
             <button type="submit" class="btn btn-success">
-                Go!
+                <span class="glyphicon glyphicon-log-in"></span> Go!
             </button>
         </div>
     </div>
     <div align = "center">
         <br>
-        <a href=@routes.Application.registration()>Register</a>
+        <a href=@routes.Application.registration()><span class="glyphicon glyphicon-user"></span> Register</a>
     </div>
     }
 }

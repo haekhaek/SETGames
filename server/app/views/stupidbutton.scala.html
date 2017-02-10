@@ -1,7 +1,6 @@
 @(username: String, url : String)
 
-@main(){
-  Hello @username! Welcome to StupidButton! :)
+@main(username, ""){
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
