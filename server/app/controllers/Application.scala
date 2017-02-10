@@ -58,26 +58,28 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
     UserForm.form.bindFromRequest.fold(
       formWithErrors => Future(BadRequest(views.html.registration(formWithErrors, "Please fill in form correctly"))),
       data => {
-        val newUser = User(0, data.firstName, data.lastName, data.userName, data.email, data.password)
+        val newUser = User(0, data.firstName, data.lastName, data.userName, data.email, data.password, 1000)
 
        val existing = userService.getUser(newUser.userName)
         existing.flatMap {
-          case Some(x) => Future.successful(Ok(views.html.registration(UserForm.form, "Sorry, Username already exists. Please try again!")))
+          case Some(x) => Future.successful(Ok(views.html.registration(UserForm.form, "Sorry, Username" + newUser.userName + "already exists. Please try again!")))
           case None => userService.addUser(newUser).map {
             res => Ok(views.html.registration(UserForm.form, res))
           }
         }
-
-        /*userService.addUser(newUser).map{
-          res => Ok(views.html.registration(UserForm.form, res))
-        }*/
       }
     )
   }
 
-    def deleteUser(id: Long) = Action.async { implicit request =>
-      userService.deleteUser(id) map { res =>
-        Redirect(routes.Application.index())
-      }
+  def deleteUser(id: Long) = Action.async { implicit request =>
+    userService.deleteUser(id) map { res =>
+      Redirect(routes.Application.index())
     }
+  }
+
+  def scores = Action.async { implicit request =>
+    userService.listScores.map { user =>
+      Ok(views.html.scores(user))
+    }
+  }
 }

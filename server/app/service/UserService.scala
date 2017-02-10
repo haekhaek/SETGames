@@ -22,11 +22,18 @@ import javax.inject.{Singleton, Inject}
   }
 
   def listAllUsers: Future[Seq[User]] = {
-    users.listAll
+    users.listAll()
   }
 
+  def listScores: Future[Seq[User]] = {
+    users.listAll(sortByScores = true)
+  }
 
   def checkPassword(userName: String, checkPassword: String): Future[Option[User]]  = {
     users.checkPassword(userName, checkPassword)
+  }
+
+  def updateEloScore(userName: String, outCome: String, competitorName: String) = {
+    users.updateEloScore(userName, outCome, competitorName)
   }
 }

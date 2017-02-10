@@ -5,12 +5,15 @@
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
+    <div id="gameContainer" class="center-block"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.OnlineMemberList().shoutMessageLogic("@username",
+            // example.TicTacToe().createGameField(example.TicTacToe().createDummyData());
+            example.TicTacToe().startGame("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));
+
         }, false);
     </script>
 }

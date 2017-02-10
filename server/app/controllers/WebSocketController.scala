@@ -14,17 +14,18 @@ import prickle.Unpickle
 import prickle.Pickle
 import scala.util.Success
 import scala.util.Failure
+import service.UserService
 
 @Singleton
 class WebSocketController @Inject()(implicit actorSystem: ActorSystem,
                                mat: Materializer,
-                               executionContext: ExecutionContext) extends Controller {
+                               executionContext: ExecutionContext, userService: UserService) extends Controller {
 
   def websocket = WebSocket.accept[String, String] { request =>
     ActorFlow.actorRef(out => request.session.get("userName") match {
         case Some(username) => {
             UserTracker.update(username, out)
-            ClientActor.props(out)
+            ClientActor.props(out, userService)
         }
         case None => throw new RuntimeException
     })
@@ -33,15 +34,15 @@ class WebSocketController @Inject()(implicit actorSystem: ActorSystem,
 }
 
 object ClientActor {
-    val forwarder = new PeerToPeerMessageForwarder
-        with ChallengeAcceptForwarder
-        with GameActionForwarder
-        with GameSurrenderForwarder
 
-    def props(out : ActorRef) = Props(new ClientActor(out))
+    def props(out : ActorRef, userService : UserService) = Props(new ClientActor(out,userService))
 }
 
-class ClientActor(out : ActorRef) extends Actor {
+class ClientActor(out : ActorRef, userService: UserService) extends Actor {
+  val forwarder = new PeerToPeerMessageForwarder(userService)
+    with ChallengeAcceptForwarder
+    with GameActionForwarder
+    with GameSurrenderForwarder
     def receive = {
         case message : String => forward(WebSocketMessage.parse(message), message)
     }
@@ -55,7 +56,7 @@ class ClientActor(out : ActorRef) extends Actor {
                     player1 <- UserTracker.users.get(socketMessage.receiver)
                     player2 <- UserTracker.users.get(socketMessage.sender)
                 } yield {
-                    ClientActor.forwarder.forward(socketMessage, player1, player2)
+                    forwarder.forward(socketMessage, player1, player2)
                 }
         }
 }

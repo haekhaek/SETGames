@@ -14,8 +14,9 @@ import prickle.Unpickle
 import prickle.Pickle
 import scala.util.Success
 import scala.util.Failure
+import service.UserService
 
-class PeerToPeerMessageForwarder {
+class PeerToPeerMessageForwarder (val userService: UserService) {
 
     def forward(socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
         UserTracker.sendTo(socketMessage.receiver, stringify(socketMessage))
@@ -74,6 +75,7 @@ trait GameActionForwarder extends PeerToPeerMessageForwarder {
                         socketMessage.sender, stateMessage)
                     if (!state.gameState.equals("ongoing")) {
                         resetGameSessions(socketMessage, player1, player2)
+                        userService.updateEloScore(socketMessage.receiver, state.gameState, socketMessage.sender)
                     }
                 })
                 case Failure(e) => UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
