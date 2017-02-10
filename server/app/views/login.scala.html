@@ -1,86 +1,24 @@
 @(loginForm: Form[model.LoginData], errorMessage: String)(implicit messages: Messages)
-@import helper._
+@implicitFC = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 
 @nochatmain(){
-    <div align="center">
-        <h1>Login</h1>
-    @helper.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
-        @helper.inputText(loginForm("Username"))
-        @helper.inputPassword(loginForm("Passwort"))
-        <button type="submit">Go!</button>
-    </div>
-    <div align="center">
-        <br>
+    <div align="center" style="text-align: center; color: red; margin: auto;">
         @errorMessage
     </div>
-
+    <div class="panel panel-primary" style="text-align: center; width:40%; margin: auto;">
+        <div class="panel-heading">Login</div>
+        <div class="panel-body">
+            @b3.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
+            @b3.text(loginForm("Username"), '_label -> "Username", 'placeholder -> "Your Username")
+            @b3.password(loginForm("Password"), '_label -> "Password", 'placeholder -> "Your Password")
+            <button type="submit" class="btn btn-success">
+                Go!
+            </button>
+        </div>
+    </div>
     <div align = "center">
         <br>
         <a href=@routes.Application.registration()>Register</a>
     </div>
-}
-
-<!--<form id="login-form" role="form" action='routes.Application.login()' method="post" class="form-horizontal" align="center" autocomplete="off">
-    <fieldset class="login-fieldset">
-
-        <div class="login-form">
-            <label class="form-title" style="color: #F8741B; font-size: 22px;font-weight: bold; text-decoration:none">Login</label>
-        </div>
-        <br/>
-        <table align="center" cellspacing="20">
-            <tr>
-                <td align="left">
-                    <div class="login-form" id="userName_field_label">
-                        <div class="controls col-xs-offset-3 col-xs-9">
-                            <div class="input-group">
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
-                                <strong>Username</strong> :
-                            </div>
-                        </div>
-                    </div>
-                </td>
-                <td align="center">
-                    <div class="login-form" id="userName_field_value">
-                        <div class="controls col-xs-offset-3 col-xs-9">
-                            <div class="input-group">
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
-                                <input type="text" id="userName" name="userName" value="" placeholder="Username" class="form-control input-lg" required>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-
-
-            <tr>
-                <td align="left">
-                    <div class="login-form" id="password_field_label">
-                        <div class="controls col-xs-offset-3 col-xs-9">
-                            <div class="input-group">
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
-                                <strong>Passwort</strong> :
-                            </div>
-                        </div>
-                    </div>
-                </td>
-                <td align="center">
-                    <div class="login-form" id="login_field_value">
-                        <div class="controls col-xs-offset-3 col-xs-9">
-                            <div class="input-group">
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
-                                <input type="password" id="password" name="password" placeholder="" class="form-control input-lg" required>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-        <br/>
-        <div class="form-actions controls ynt-btn-xlarge">
-            <button type="submit" class="btn btn-primary ynt-btn-orange">Go!</button>
-        </div>
-
-    </fieldset>
-</form>
-    -->
+    }
 }
