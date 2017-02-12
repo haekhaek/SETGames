@@ -1,6 +1,5 @@
 package controllers
 
-import java.net.URL
 import javax.inject._
 
 import play.api.mvc._

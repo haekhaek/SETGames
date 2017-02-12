@@ -34,7 +34,6 @@ class WebSocketController @Inject()(implicit actorSystem: ActorSystem,
 }
 
 object ClientActor {
-
     def props(out : ActorRef, userService : UserService) = Props(new ClientActor(out,userService))
 }
 
