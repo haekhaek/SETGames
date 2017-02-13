@@ -1,14 +1,16 @@
 @(username: String, url : String)
 
 @main(){
-  Hello @username! Welcome to TicTacToe! :)
+  Hello @username! Welcome to Four Wins! :)
     <div align = "center">
         <a href=@routes.Application.logout()>Logout</a>
     </div>
-    <div id="gameContainer" class="center-block"></div>
+    <div id="gameContainerFourWins" class="center-block"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.TicTacToe().startGame("@username",
+            // example.FourWins().createGameField(example.FourWins().createDummyData(), true);
+            example.FourWins().createDummyData();
+            example.FourWins().startGame("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));

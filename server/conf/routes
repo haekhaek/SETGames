@@ -12,7 +12,8 @@ GET     /delete/:id                 controllers.Application.deleteUser(id : Long
 GET     /scores                     controllers.Application.scores
 GET     /websocket                  controllers.WebSocketController.websocket
 GET     /tictactoe                  controllers.GameController.tictactoe
-GET     /stupidbutton                  controllers.GameController.stupidbutton
+GET     /fourwins                   controllers.GameController.fourwins
+GET     /stupidbutton               controllers.GameController.stupidbutton
 
 
 # Map static resources from the /public folder to the /assets URL path

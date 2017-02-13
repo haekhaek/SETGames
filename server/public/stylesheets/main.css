@@ -36,3 +36,32 @@
   height: 100%;
 }
 
+/*
+ * Four Wins css
+ */
+#gameContainerFourWins {
+  width: 350px;
+}
+
+#gameFieldFourWins {
+  width: 350px;
+  height: 300px;
+  padding: 0;
+  margin: 0;
+}
+
+#gameFieldFourWins img{
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#gameFieldFourWins div{
+  background-image: url("/assets/images/four-wins-block.jpg");
+  cursor: pointer;
+  float: left;
+  position: relative;
+  height: 50px;
+  width: 50px;
+}

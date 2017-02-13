@@ -1,7 +1,7 @@
 package controllers
 
 import javax.inject._
-import model.{StupidButtonGame, TicTacToeGame}
+import model.{StupidButtonGame, TicTacToeGame, FourWinsGame}
 import akka.actor._
 import akka.stream.Materializer
 import play.api.mvc._
@@ -25,7 +25,7 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
   def fourwins = auth.AuthenticatedAction { implicit request =>
     val userId = request.session.get("userName").get
 
-    // UserTracker.updateGame(userId, Some(new TicTacToeGame()))
+     UserTracker.updateGame(userId, Some(new FourWinsGame()))
     val url = routes.WebSocketController
       .websocket().webSocketURL()
     Ok(views.html.fourwins(userId, url))

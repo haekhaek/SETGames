@@ -152,6 +152,8 @@ trait UpdateFourWins extends Update[Column]{
         availableActions = availableActions.filter(_ != action) //if column is full, remove from available actions
       }
       s.gameState = checkWin(curRow(c), c, f)
+      curRow(c) += 1
+
       return s
     }
     else{
@@ -203,6 +205,25 @@ class TicTacToeGame extends GameWrapper {
         currentState
     }
     
+    def currentState : StateWrapper = {
+        StateWrapper(game.state.gameState, game.player.playerLabel,
+            game.field.toList.map(a => a.toList).toList)
+    }
+
+}
+
+class FourWinsGame extends GameWrapper {
+    val game = new Game[Column] with UpdateFourWins with FieldFourWins {}
+
+    def getAvailableActionWrappers(): List[ActionWrapper] =
+        game.getAvailableActions.map(a => ActionWrapper(List(a.data.c))).toList
+
+    def updateStateWrapper(action: ActionWrapper): StateWrapper = {
+        val unwrappedAction = Action(Column(action.data.toList(0)))
+        game.updateGameState(unwrappedAction)
+        currentState
+    }
+
     def currentState : StateWrapper = {
         StateWrapper(game.state.gameState, game.player.playerLabel,
             game.field.toList.map(a => a.toList).toList)

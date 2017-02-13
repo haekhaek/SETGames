@@ -102,8 +102,20 @@ trait TicTacToeUpdateHandler extends GameUpdateHandler {
     def update(message: WebSocketMessage, myTurn: Boolean) = {
         Unpickle[StateWrapper].fromString(message.data) match {
             case Success(state) =>
-                // val myTurn = s"${state.playerLabel}".equals(DomUtil.currentPlayerLabel)
                 TicTacToe.createGameField(state.field, myTurn, message)
+            case _ => throw new IllegalArgumentException
+        }
+    }
+}
+
+trait FourWinsUpdateHandler extends GameUpdateHandler {
+    def activateUpdate(message: WebSocketMessage) = update(message, true)
+    def deactivateUpdate(message: WebSocketMessage) = update(message, false)
+    def setupUpdateLogic(message: WebSocketMessage) = ()
+    def update(message: WebSocketMessage, myTurn: Boolean) = {
+        Unpickle[StateWrapper].fromString(message.data) match {
+            case Success(state) =>
+                FourWins.createGameField(state.field, myTurn, message)
             case _ => throw new IllegalArgumentException
         }
     }
