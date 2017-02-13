@@ -1,10 +1,12 @@
 package controllers
 
 import javax.inject._
-import model.{StupidButtonGame, TicTacToeGame, FourWinsGame}
+import model.{TicTacToeGame, FourWinsGame}
 import akka.actor._
 import akka.stream.Materializer
+import model.TicTacToeGame
 import play.api.mvc._
+
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -30,14 +32,4 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
       .websocket().webSocketURL()
     Ok(views.html.fourwins(userId, url))
   }
-
-  def stupidbutton = auth.AuthenticatedAction { implicit request =>
-    val userId = request.session.get("userName").get
-
-    UserTracker.updateGame(userId, Some(new StupidButtonGame()))
-    val url = routes.WebSocketController
-      .websocket().webSocketURL()
-    Ok(views.html.stupidbutton(userId, url))
-  }
-
 }
