@@ -1,20 +1,11 @@
 package controllers
 
-import javax.inject._
-
-import shared.{GameWrapper, ActionWrapper}
-import shared.WebSocketMessage
-import shared.WebSocketMessage._
-import akka.actor._
-import akka.stream.Materializer
-import play.api.mvc._
-import play.api.libs.streams.ActorFlow
-import scala.concurrent.ExecutionContext
-import prickle.Unpickle
-import prickle.Pickle
-import scala.util.Success
-import scala.util.Failure
+import prickle.{Pickle, Unpickle}
 import service.UserService
+import shared.{ActionWrapper, WebSocketMessage}
+import shared.WebSocketMessage._
+
+import scala.util.{Failure, Success}
 
 class PeerToPeerMessageForwarder (val userService: UserService) {
 
@@ -75,7 +66,7 @@ trait GameActionForwarder extends PeerToPeerMessageForwarder {
                         socketMessage.sender, stateMessage)
                     if (!state.gameState.equals("ongoing")) {
                         resetGameSessions(socketMessage, player1, player2)
-                        userService.updateEloScore(socketMessage.receiver, state.gameState, socketMessage.sender)
+                        userService.updateEloScore(socketMessage.sender, state.gameState, socketMessage.receiver)
                     }
                 })
                 case Failure(e) => UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(

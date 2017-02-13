@@ -98,14 +98,12 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "users") {
     scoreA.onSuccess { case scoreA =>
       scoreB.onSuccess {
         case scoreB => {
-          db.run(scoreAQuery.update(calcEloScore(scoreA, scoreB, outCome)))
-          db.run(scoreBQuery.update(calcEloScore(scoreB, scoreA, outCome)))
+          val newScores = calcEloScore(scoreA, scoreB, outCome)
+          db.run(scoreAQuery.update(newScores._1))
+          db.run(scoreBQuery.update(newScores._2))
         }
       }
-    } //calculate new EloScore
-
-    // val newScoreA: Int = calcEloScore(scA, scB, outCome)
-    // db.run(scoreAQuery.update(newScoreA))
+    }
   }
 }
 
