@@ -1,29 +1,22 @@
 package controllers
 
 import javax.inject.Inject
-
 import model.{LoginForm, UserForm, User, Users}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import service.UserService
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//class Application extends Controller {
-class Application @Inject()(val messagesApi: MessagesApi, users: Users, userService: UserService)
-  extends Controller with I18nSupport{
 
-  def index = Action { implicit request =>
-    val loggedIn = request.session.get("userName") //TODO
-    //val loggedIn = None
-    if (loggedIn != None){
-      val url = routes.WebSocketController.websocket().webSocketURL()
-      UserTracker.updateGame(loggedIn.get, None)
-      Ok(views.html.home(loggedIn.get, url))
-    }
-    else
-      Ok(views.html.login(LoginForm.form, ""))
+class Application @Inject()(val auth: AuthAction, val messagesApi: MessagesApi, users: Users, userService: UserService) extends Controller with I18nSupport{
+
+  def index = auth.AuthenticatedAction { implicit request =>
+    val userName = request.session.get("userName").get
+    val url = routes.WebSocketController.websocket().webSocketURL()
+
+    UserTracker.updateGame(userName, None)
+    Ok(views.html.home(userName, url))
   }
 
   def login() = Action.async { implicit request =>
@@ -44,9 +37,11 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
       })
   }
 
-  def logout() = Action.async { implicit request =>
-    UserTracker.updateGame(request.session.get("userName").get, None)
-    request.session.get("userName").map(u => UserTracker.remove(u))
+  def logout() = auth.AuthenticatedAction.async { implicit request =>
+    val userName = request.session.get("userName").get
+
+    UserTracker.updateGame(userName, None)
+    UserTracker.remove(userName)
     Future.successful(Redirect(routes.Application.index()).withNewSession)
   }
 
@@ -71,13 +66,13 @@ class Application @Inject()(val messagesApi: MessagesApi, users: Users, userServ
     )
   }
 
-  def deleteUser(id: Long) = Action.async { implicit request =>
+  def deleteUser(id: Long) = auth.AuthenticatedAction.async { implicit request =>
     userService.deleteUser(id) map { res =>
       Redirect(routes.Application.index())
     }
   }
 
-  def scores = Action.async { implicit request =>
+  def scores = auth.AuthenticatedAction.async { implicit request =>
     userService.listScores.map { user =>
       Ok(views.html.scores(user))
     }
