@@ -14,11 +14,11 @@
       </div>
       <div class="col-md-4">
         <div class="thumbnail">
-          <a href="@routes.GameController.tictactoe()">
+          <a href="@routes.GameController.fourwins()">
             <div class="caption text-center">
               <p>Connect4</p>
             </div>
-            <img src="@routes.Assets.versioned("images/tictactoe.png")" alt="Nature" style="width:100%">
+            <img src="@routes.Assets.versioned("images/connect4.png")" alt="Nature" style="width:100%">
           </a>
         </div>
       </div>
@@ -35,7 +35,7 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.OnlineMemberList().shoutMessageLogic("@username",
+            js.OnlineMemberList().shoutMessageLogic("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));

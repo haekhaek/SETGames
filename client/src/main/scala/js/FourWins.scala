@@ -1,4 +1,4 @@
-package example
+package js
 
 import org.scalajs.dom
 import org.scalajs.dom.html

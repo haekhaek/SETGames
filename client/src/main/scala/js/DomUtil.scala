@@ -1,4 +1,4 @@
-package example
+package js
 
 import shared.WebSocketMessage
 import shared.WebSocketMessage._

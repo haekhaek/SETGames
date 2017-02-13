@@ -1,4 +1,4 @@
-package example
+package js
 
 import shared.{StateWrapper, ActionWrapper}
 import shared.WebSocketMessage
@@ -145,9 +145,12 @@ trait GameUpdateHandler extends WebSocketMessageHandler {
                     } else if(draw) {
                         handleGameOver("It is a draw! ","No one has won or lost!","warning")
                     } else if(myTurn) {
+                        displayMyTurn
                         activateUpdate(message)
                         setupUpdateLogic(message)
                         DomUtil.setPlayingGame(true)
+                    } else {
+                        displayNotMyTurn
                     }
                 case Failure(e) =>
                     throw new IllegalArgumentException(e.getMessage)
@@ -164,6 +167,22 @@ trait GameUpdateHandler extends WebSocketMessageHandler {
         messageType))
       DomUtil.activateChallengeButtons(userName, connection)
       DomUtil.setPlayingGame(false)
+    }
+    
+    def displayMyTurn = {
+      DomUtil.clearMessages
+      DomUtil.displayMessage(DomMessage(
+        "It's your turn",
+        "",
+        "info"))
+    }
+    
+    def displayNotMyTurn = {
+      DomUtil.clearMessages
+      DomUtil.displayMessage(DomMessage(
+        "It's your opponent's turn",
+        "",
+        "warning"))
     }
 }
 

@@ -1,4 +1,4 @@
-package example
+package js
 
 import shared.WebSocketMessage
 import scala.scalajs.js
