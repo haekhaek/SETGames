@@ -1,19 +1,38 @@
 @(username: String, url : String)
 
-@nochatmain(){
-
-    <div align = "center">
-        Hello @username! Welcome to PlayGames! :) <br>
-        <a href=@routes.GameController.tictactoe()>[TicTacToe]</a> <br>
-        <a href=@routes.GameController.fourwins()>[4 Gewinnt]</a>
+@main(username, "home"){
+    <div class="row">
+      <div class="col-md-4">
+        <div class="thumbnail">
+          <a href="@routes.GameController.tictactoe()">
+            <div class="caption text-center">
+              <p>TicTacToe</p>
+            </div>
+            <img src="@routes.Assets.versioned("images/tictactoe.png")" alt="Lights" style="width:100%">
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="thumbnail">
+          <a href="@routes.GameController.tictactoe()">
+            <div class="caption text-center">
+              <p>Connect4</p>
+            </div>
+            <img src="@routes.Assets.versioned("images/tictactoe.png")" alt="Nature" style="width:100%">
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="thumbnail">
+          <a href="@routes.GameController.tictactoe()">
+            <div class="caption text-center">
+              <p>Battleship</p>
+            </div>
+            <img src="@routes.Assets.versioned("images/tictactoe.png")" alt="Fjords" style="width:100%">
+          </a>
+        </div>
+      </div>
     </div>
-    <a href=@routes.GameController.stupidbutton()>[StupidButton]</a>
-
-    <div align = "center">
-        <a href=@routes.Application.scores()>Show Highscores</a> <br>
-    </div>
-    <div align = "right">
-    <a href=@routes.Application.logout()>Logout</a>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             example.OnlineMemberList().shoutMessageLogic("@username",

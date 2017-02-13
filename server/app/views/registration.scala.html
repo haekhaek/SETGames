@@ -1,18 +1,28 @@
-@(userForm: Form[model.UserData], errorMessage: String)(implicit messages: Messages)
-@main() {
-    <div align="center">
-        <h1>Register at PlayGames! :)</h1>
-        @helper.form(action= routes.Application.addUser(), 'method -> "post", 'id -> "registration-form", 'method -> "post") {
-            @helper.inputText(userForm("Vorname"))
-            @helper.inputText(userForm("Nachname"))
-            @helper.inputText(userForm("Username"))
-            @helper.inputText(userForm("Email"))
-            @helper.inputPassword(userForm("Passwort"))
-            <button type="submit">Register!</button></div>
-    }
-    <div align="center">
-        <br>
+@(userForm: Form[model.UserData], successMessage: String, errorMessage: String)(implicit messages: Messages)
+
+@implicitFC = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
+@nochatmain() {
+    <div align="center" style="text-align: center; color: green; margin: auto;">
+        @successMessage
+    </div>
+    <div align="center" style="text-align: center; color: red; margin: auto;">
         @errorMessage
-        <a href=@routes.Application.index()>Login</a>  <!-- only if errorMessage == "" -->
+    </div>
+    <div class="panel panel-primary" style="text-align: center; width:40%; margin: auto;">
+        <div class="panel-heading"><h3><span class="glyphicon glyphicon-user"></span> Register</h3></div>
+        <div class="panel-body">
+            @b3.form(action= routes.Application.addUser(), 'method -> "post", 'id -> "login-form", 'method -> "post") {
+            @b3.text(userForm("Vorname"),'_label -> "First Name", 'placeholder -> "Your First Name")
+            @b3.text(userForm("Nachname"),'_label -> "Last Name", 'placeholder -> "Your Last Name")
+            @b3.text(userForm("Username"),'_label -> "Username", 'placeholder -> "Your Username")
+            @b3.text(userForm("Email"),'_label -> "E-Mail Address", 'placeholder -> "Your E-Mail Address")
+            @b3.password(userForm("Passwort"),'_label -> "Password", 'placeholder -> "Your Password")
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-user"></span> Register!
+            </button></div>
+    }
+    </div>
+    <div align="center">
+        <a href=@routes.Application.index()><span class="glyphicon glyphicon-log-in"></span> Login</a>
     </div>
 }

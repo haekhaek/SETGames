@@ -1,15 +1,10 @@
 @(username: String, url : String)
 
-@main(){
-  Hello @username! Welcome to Four Wins! :)
-    <div align = "center">
-        <a href=@routes.Application.logout()>Logout</a>
-    </div>
+@gamemain(username){
+    <h2>Connect4</h2>
     <div id="gameContainerFourWins" class="center-block"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // example.FourWins().createGameField(example.FourWins().createDummyData(), true);
-            example.FourWins().createDummyData();
             example.FourWins().startGame("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),

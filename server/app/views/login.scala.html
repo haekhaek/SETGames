@@ -1,22 +1,24 @@
 @(loginForm: Form[model.LoginData], errorMessage: String)(implicit messages: Messages)
-@import helper._
+@implicitFC = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 
 @nochatmain(){
-    <div align="center">
-        <h1>Login</h1>
-    @helper.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
-        @helper.inputText(loginForm("Username"))
-        @helper.inputPassword(loginForm("Passwort"))
-        <button type="submit">Go!</button>
-    </div>
-    <div align="center">
-        <br>
+    <div align="center" style="text-align: center; color: red; margin: auto;">
         @errorMessage
     </div>
-
+    <div class="panel panel-primary" style="text-align: center; width:40%; margin: auto;">
+        <div class="panel-heading"><h3><span class="glyphicon glyphicon-log-in"></span> Login</h3></div>
+        <div class="panel-body">
+            @b3.form(action= routes.Application.login(), 'id -> "login-form", 'method -> "post") {
+            @b3.text(loginForm("Username"), '_label -> "Username", 'placeholder -> "Your Username")
+            @b3.password(loginForm("Passwort"), '_label -> "Password", 'placeholder -> "Your Password")
+            <button type="submit" class="btn btn-success">
+                <span class="glyphicon glyphicon-log-in"></span> Go!
+            </button>
+        </div>
+    </div>
     <div align = "center">
         <br>
-        <a href=@routes.Application.registration()>Register</a>
+        <a href=@routes.Application.registration()><span class="glyphicon glyphicon-user"></span> Register</a>
     </div>
     }
 }
