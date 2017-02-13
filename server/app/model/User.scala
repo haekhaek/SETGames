@@ -1,6 +1,3 @@
-/**
-  * Created by Eugen Bopp on 15/01/2017.
-  */
 package model
 import EloScore._
 import javax.inject.{Inject, Singleton}

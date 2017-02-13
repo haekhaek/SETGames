@@ -1,8 +1,5 @@
 package service
 
-/**
-  * Created by Eugen Bopp on 15/01/2017.
-  */
 import model.{User, Users}
 import scala.concurrent.Future
 import javax.inject.{Singleton, Inject}
