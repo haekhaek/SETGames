@@ -51,18 +51,6 @@ object FourWins{
   }
 
   @JSExport
-  def createDummyData(): Iterable[Iterable[Char]] = {
-    List(
-      List('-','-','-','-','-','-','-'),
-      List('-','-','-','-','-','-','-'),
-      List('-','-','-','-','-','-','-'),
-      List('-','-','-','-','-','-','-'),
-      List('-','-','-','-','-','-','-'),
-      List('-','-','-','-','-','-','-')
-    )
-  }
-
-  @JSExport
   def startGame(
         userName_ : String,
         send : html.Button,

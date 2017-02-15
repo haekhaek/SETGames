@@ -1,10 +1,9 @@
 package controllers
 
 import javax.inject._
-import model.{TicTacToeGame, FourWinsGame}
+import model.{TicTacToeGame, FourWinsGame, BattleshipGame}
 import akka.actor._
 import akka.stream.Materializer
-import model.TicTacToeGame
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
@@ -31,5 +30,14 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
     val url = routes.WebSocketController
       .websocket().webSocketURL()
     Ok(views.html.fourwins(userId, url))
+  }
+
+  def battleship = auth.AuthenticatedAction { implicit request =>
+    val userId = request.session.get("userName").get
+
+     UserTracker.updateGame(userId, Some(new BattleshipGame()))
+    val url = routes.WebSocketController
+      .websocket().webSocketURL()
+    Ok(views.html.battleship(userId, url))
   }
 }

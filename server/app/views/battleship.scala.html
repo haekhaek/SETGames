@@ -1,0 +1,14 @@
+@(username: String, url : String)
+
+@gamemain(username){
+  <h3>Battleship</h3>
+  <div id="gameContainerBattleShip" class="center-block"></div>
+  <script>
+     document.addEventListener('DOMContentLoaded', function() {
+      example.BattleShip().startGame("@username",
+              document.getElementById("send"),
+              document.getElementById("message"),
+              new WebSocket("@url"));
+    }, false);
+  </script>
+}

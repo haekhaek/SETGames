@@ -64,15 +64,6 @@ object TicTacToe{
   }
 
   @JSExport
-  def createDummyData(): Iterable[Iterable[Char]] = {
-    List(
-      List('o','o','x'),
-      List('-','-','o'),
-      List('-','x','x')
-    )
-  }
-
-  @JSExport
   def startGame(
         userName_ : String,
         send : html.Button,
