@@ -24,7 +24,7 @@ object UserTracker {
         .getOrElse(false)
     
     def currentlyActiveUsers : concurrent.Map[String, UserRecord] = {
-        val expiredUserIDs = users.keys.filter(u => expired(u))
+        val expiredUserIDs = users.keys.filter(expired(_))
         for(userId <- expiredUserIDs) {
             users.remove(userId)
         }

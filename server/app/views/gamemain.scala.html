@@ -13,6 +13,27 @@
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")">
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/bootstrap-theme.min.css")">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        a.header-link:link {
+            text-decoration: none;
+            color: black;
+        }
+
+        a.header-link:visited {
+            text-decoration: none;
+            color: black;
+        }
+
+        a.header-link:hover {
+            text-decoration: none;
+            color: black;
+        }
+
+        a.header-link:active {
+            text-decoration: none;
+            color: black;
+        }
+    </style>
   </head>
   <body>
   <div id="notifications"></div>
@@ -20,7 +41,9 @@
   <div id="currentPlayerLabel" style="display:none"></div>
   <div class="container">
       <div class="page-header">
-        <h1><img src="@routes.Assets.versioned("images/logo.png")" width="50px"/> SET Games</h1>     
+        <a class="header-link" href="@routes.Application.index()">
+            <h1><img src="@routes.Assets.versioned("images/logo.png")" width="50px"/> SET Games</h1>
+        </a> 
       </div>
   </div>
   <div class="container">
@@ -87,5 +110,12 @@
         </div>
       </div>
     </div>
+    <div class="container">
+      <div class="page-header">
+      </div>
+      &copy; 2017 S. Friedl, E. Bopp and T. Phan, <a href="http://www.ifi.lmu.de/">Institut f&uuml;r Informatik</a>, <a href="http://www.lmu.de/">Ludwig-Maximilians-Universit&auml;t</a>
+      <br/>
+      Page generated on @{new java.text.SimpleDateFormat("yyyy-MM-dd HH:ss:SS").format(new java.util.Date)}
+  </div>
   </body>
 </html>

@@ -5,8 +5,6 @@ import service.UserService
 import shared.{ActionWrapper, WebSocketMessage}
 import shared.WebSocketMessage._
 
-import scala.util.{Failure, Success}
-
 class PeerToPeerMessageForwarder (val userService: UserService) {
 
     def forward(socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
@@ -57,8 +55,10 @@ trait ChallengeAcceptForwarder extends PeerToPeerMessageForwarder {
 trait GameActionForwarder extends PeerToPeerMessageForwarder {
     override def forward(socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
         if (socketMessage.messageType == WebSocketMessage.GAME_ACTION.id) {
-            Unpickle[ActionWrapper].fromString(socketMessage.data) match {
-                case Success(actionWrapper) => player1.game.map(g => {
+            for {
+                actionWrapper <- Unpickle[ActionWrapper].fromString(socketMessage.data)
+            } yield {
+                player1.game.map(g => {
                     val state = g.updateStateWrapper(actionWrapper)
                     val stateMessage = Pickle.intoString(state)
                     sendMessageToPlayers(GAME_UPDATE.id,
@@ -69,9 +69,7 @@ trait GameActionForwarder extends PeerToPeerMessageForwarder {
                         userService.updateEloScore(socketMessage.sender, state.gameState, socketMessage.receiver)
                     }
                 })
-                case Failure(e) => UserTracker.sendTo(socketMessage.receiver, stringify(WebSocketMessage(
-                    ERROR.id, socketMessage.sender, socketMessage.receiver, e.getMessage)))
-                }
+            }
         } else {
             super.forward(socketMessage, player1, player2)
         }

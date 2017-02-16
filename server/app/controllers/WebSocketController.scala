@@ -10,10 +10,6 @@ import akka.stream.Materializer
 import play.api.mvc._
 import play.api.libs.streams.ActorFlow
 import scala.concurrent.ExecutionContext
-import prickle.Unpickle
-import prickle.Pickle
-import scala.util.Success
-import scala.util.Failure
 import service.UserService
 
 @Singleton
@@ -22,13 +18,11 @@ class WebSocketController @Inject()(implicit actorSystem: ActorSystem,
                                executionContext: ExecutionContext, userService: UserService) extends Controller {
 
   def websocket = WebSocket.accept[String, String] { request =>
-    ActorFlow.actorRef(out => request.session.get("userName") match {
-        case Some(username) => {
-            UserTracker.update(username, out)
-            ClientActor.props(out, userService)
-        }
-        case None => throw new RuntimeException
-    })
+    ActorFlow.actorRef(out => request.session.get("userName")
+        .map(username => {
+        UserTracker.update(username, out)
+        ClientActor.props(out, userService)
+    }).getOrElse(throw new NoSuchElementException("userName")))
   }
 
 }
@@ -42,6 +36,7 @@ class ClientActor(out : ActorRef, userService: UserService) extends Actor {
     with ChallengeAcceptForwarder
     with GameActionForwarder
     with GameSurrenderForwarder
+
     def receive = {
         case message : String => forward(WebSocketMessage.parse(message), message)
     }
