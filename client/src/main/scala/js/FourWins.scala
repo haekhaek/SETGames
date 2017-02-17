@@ -6,9 +6,7 @@ import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.raw.HTMLDivElement
 import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
-import shared.{WebSocketMessage,ActionWrapper}
-import shared.WebSocketMessage._
-import prickle.Pickle
+import shared.{WebSocketMessage,ActionWrapper, GameUpdateMessage, GameActionMessage}
 
 @JSExport
 object FourWins{
@@ -33,7 +31,7 @@ object FourWins{
       println(columnClicked)
 
       val action = ActionWrapper(List(columnClicked))
-      connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
+      WebSocketUtil.send(connection, GameActionMessage(userName, message.sender, action))
       canIClick = false
     }
   }

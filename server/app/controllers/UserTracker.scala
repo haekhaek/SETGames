@@ -2,9 +2,8 @@ package controllers
 
 import shared.GameWrapper
 import akka.actor._
-import shared.WebSocketMessage
+import shared.{WebSocketMessage, UserUpdateMessage}
 import scala.collection.concurrent
-import prickle.Pickle
 
 case class UserRecord(channel : ActorRef, lastActivityTimestamp : Long, var game : Option[GameWrapper])
 
@@ -56,10 +55,9 @@ object UserTracker {
         }
     
     def publishMemberList(game : Option[GameWrapper]) = {
-        val userList = Pickle.intoString(filteredUsersByGame(game).keys)
-        val messageType = WebSocketMessage.USER_UPDATE.id
+        val userList = filteredUsersByGame(game).keys
         broadcastTo(WebSocketMessage.stringify(
-            WebSocketMessage(messageType,"","all",userList)), game)
+            UserUpdateMessage("","all",userList)), game)
     }
 
     def broadcast(message : String) = users.foreach({case (k, v) => v.channel ! message})

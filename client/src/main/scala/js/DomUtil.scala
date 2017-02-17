@@ -1,7 +1,6 @@
 package js
 
-import shared.WebSocketMessage
-import shared.WebSocketMessage._
+import shared.{WebSocketMessage, NotificationMessage, ChallengeMessage, ChallengeAcceptMessage, ChallengeDeclineMessage}
 import scala.scalajs.js
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom
@@ -29,7 +28,7 @@ object DomUtil {
             val text = message.value
             message.value = ""
             WebSocketUtil.send(connection,
-                WebSocketMessage(NOTIFICATION.id, userName, "all", text))
+                NotificationMessage(userName, "all", text))
         }
         return { (e: dom.Event) =>
             send.disabled = false
@@ -65,8 +64,7 @@ object DomUtil {
         } yield {
             if(!member.equals(userName)) {
                 val clickListener = { (e: dom.Event) =>
-                    WebSocketUtil.send(connection,
-                    WebSocketMessage(CHALLENGE.id, userName, member, ""))
+                    WebSocketUtil.send(connection, ChallengeMessage(userName, member))
                 }
                 memberList.appendChild(li(div(Some(member), cls:="buttonChallenge")).render)
             }
@@ -83,8 +81,7 @@ object DomUtil {
         } yield {
             if(!member.equals(userName)) {
                 val clickListener = { (e: dom.Event) =>
-                    WebSocketUtil.send(connection,
-                    WebSocketMessage(CHALLENGE.id, userName, member, ""))
+                    WebSocketUtil.send(connection, ChallengeMessage(userName, member))
                     deactivateChallengeButtons(userName, connection)
                     clearMessages
                     displayMessage(DomMessage("You ",
@@ -111,7 +108,7 @@ object DomUtil {
             s"${message.sender} ",
             "wants to play against you. ",
             "warning"))
-        challengeDiv.appendChild(challengeOption("[Accept]", CHALLENGE_ACCEPT.id,
+        challengeDiv.appendChild(challengeOption("[Accept]", true,
             challengeDiv, connection, message,
             s => {
                 playingGame = true
@@ -122,14 +119,14 @@ object DomUtil {
                 "warning"))
                 setCurrentPlayerLabel("O")
             }))
-        challengeDiv.appendChild(challengeOption("[Decline]", CHALLENGE_DECLINE.id,
+        challengeDiv.appendChild(challengeOption("[Decline]", false,
             challengeDiv, connection, message,
             activateChallengeButtons(_, connection)))
         messages.appendChild(challengeDiv)
     }
     
     def challengeOption(caption : String,
-                    messageType : Int,
+                    accept : Boolean,
                     challengeDiv : dom.html.Div,
                     connection : dom.WebSocket,
                     message : WebSocketMessage,
@@ -138,8 +135,11 @@ object DomUtil {
             challengeDiv.style.display = "none"
             func(message.receiver)
             WebSocketUtil.send(
-                connection,
-                WebSocketMessage(messageType, message.receiver, message.sender, ""))
+                connection, if(accept) {
+                    ChallengeAcceptMessage(message.receiver, message.sender)
+                } else {
+                    ChallengeDeclineMessage(message.receiver, message.sender)
+                })
         }}).render
 
     def displayMessage(m : DomMessage) {

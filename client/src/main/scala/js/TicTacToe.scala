@@ -6,7 +6,7 @@ import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.raw.HTMLDivElement
 import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
-import shared.{WebSocketMessage,ActionWrapper}
+import shared.{WebSocketMessage,ActionWrapper, GameUpdateMessage, GameActionMessage}
 import shared.WebSocketMessage._
 import prickle.Pickle
 
@@ -46,7 +46,7 @@ object TicTacToe{
       val y = blockIdClicked.charAt(1)-'0'
 
       val action = ActionWrapper(List(x,y))
-      connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
+      connection.send(stringify(GameActionMessage(userName, message.sender, action)))
       canIClick = false
     }
   }

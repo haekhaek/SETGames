@@ -1,9 +1,9 @@
 package controllers
 
-import prickle.{Pickle, Unpickle}
 import service.UserService
-import shared.{ActionWrapper, WebSocketMessage}
-import shared.WebSocketMessage._
+import shared.WebSocketMessage.stringify
+import shared.{ActionWrapper, WebSocketMessage, GameUpdateMessage,
+               ChallengeAcceptMessage, GameActionMessage, GameSurrenderMessage, StateWrapper}
 
 class PeerToPeerMessageForwarder (val userService: UserService) {
 
@@ -21,68 +21,61 @@ class PeerToPeerMessageForwarder (val userService: UserService) {
             player2.channel)
     }
     
-    def sendMessageToPlayers(
-        messageType : Int,
+    def sendStateToPlayers(
         player1 : String,
         player2 : String,
-        message : String) {
-        UserTracker.sendTo(player1, stringify(WebSocketMessage(
-            messageType, player2, player1, message)))
-        UserTracker.sendTo(player2, stringify(WebSocketMessage(
-            messageType, player1, player2, message)))
+        state : StateWrapper) {
+        UserTracker.sendTo(player1, stringify(GameUpdateMessage(
+            player2, player1, state)))
+        UserTracker.sendTo(player2, stringify(GameUpdateMessage(
+            player1, player2, state)))
     }
 
 }
 
 trait ChallengeAcceptForwarder extends PeerToPeerMessageForwarder {
-    override def forward (socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
-        if (socketMessage.messageType == WebSocketMessage.CHALLENGE_ACCEPT.id) {
-            UserTracker.sendTo(socketMessage.receiver, stringify(socketMessage))
-            UserTracker.updateGame(socketMessage.receiver, player1.game, player1.channel)
-            UserTracker.updateGame(socketMessage.sender, player1.game, player2.channel)
+    override def forward (socketMessage : WebSocketMessage,
+        player1 : UserRecord, player2 : UserRecord) = socketMessage match {
+        case challengeAccept : ChallengeAcceptMessage => {
+            UserTracker.sendTo(challengeAccept.receiver, stringify(challengeAccept))
+            UserTracker.updateGame(challengeAccept.receiver, player1.game, player1.channel)
+            UserTracker.updateGame(challengeAccept.sender, player1.game, player2.channel)
             player1.game.map(g => {
-                val stateMessage = Pickle.intoString(g.currentState)
-                sendMessageToPlayers(GAME_UPDATE.id,
-                socketMessage.receiver,
-                socketMessage.sender, stateMessage)
+                sendStateToPlayers(
+                challengeAccept.receiver,
+                challengeAccept.sender, g.currentState)
             })
-        } else {
-            super.forward(socketMessage, player1, player2)
         }
+        case _ => super.forward(socketMessage, player1, player2)
     }
 }
 
 trait GameActionForwarder extends PeerToPeerMessageForwarder {
-    override def forward(socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
-        if (socketMessage.messageType == WebSocketMessage.GAME_ACTION.id) {
-            for {
-                actionWrapper <- Unpickle[ActionWrapper].fromString(socketMessage.data)
-            } yield {
-                player1.game.map(g => {
-                    val state = g.updateStateWrapper(actionWrapper)
-                    val stateMessage = Pickle.intoString(state)
-                    sendMessageToPlayers(GAME_UPDATE.id,
-                        socketMessage.receiver,
-                        socketMessage.sender, stateMessage)
-                    if (!state.gameState.equals("ongoing")) {
-                        resetGameSessions(socketMessage, player1, player2)
-                        userService.updateEloScore(socketMessage.sender, state.gameState, socketMessage.receiver)
-                    }
-                })
-            }
-        } else {
-            super.forward(socketMessage, player1, player2)
+    override def forward(socketMessage : WebSocketMessage,
+        player1 : UserRecord, player2 : UserRecord) = socketMessage match {
+        case gameAction : GameActionMessage => {
+            player1.game.map(g => {
+                val state = g.updateStateWrapper(gameAction.action)
+                sendStateToPlayers(
+                    socketMessage.receiver,
+                    socketMessage.sender, state)
+                if (!state.gameState.equals("ongoing")) {
+                    resetGameSessions(socketMessage, player1, player2)
+                    userService.updateEloScore(socketMessage.sender, state.gameState, socketMessage.receiver)
+                }
+            })
         }
+        case _ => super.forward(socketMessage, player1, player2)
     }
 }
 
 trait GameSurrenderForwarder extends PeerToPeerMessageForwarder {
-    override def forward(socketMessage : WebSocketMessage, player1 : UserRecord, player2 : UserRecord) {
-        if (socketMessage.messageType == WebSocketMessage.GAME_SURRENDER.id) {
+    override def forward(socketMessage : WebSocketMessage,
+        player1 : UserRecord, player2 : UserRecord) = socketMessage match {
+        case gameSurrender : GameSurrenderMessage => {
             UserTracker.sendTo(socketMessage.receiver, stringify(socketMessage))
             resetGameSessions(socketMessage, player1, player2)
-        } else {
-            super.forward(socketMessage, player1, player2)
         }
+        case _ => super.forward(socketMessage, player1, player2)
     }
 }
