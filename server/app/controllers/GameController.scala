@@ -17,7 +17,7 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
   def tictactoe = auth.AuthenticatedAction { implicit request =>
       val userId = request.session.get("userName").get
 
-      UserTracker.updateGame(userId, Some(new TicTacToeGame()))
+      UserTracker.updateGame(userId, Some(TicTacToeGame()))
       val url = routes.WebSocketController
         .websocket().webSocketURL()
       Ok(views.html.tictactoe(userId, url))
@@ -26,7 +26,7 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
   def fourwins = auth.AuthenticatedAction { implicit request =>
     val userId = request.session.get("userName").get
 
-     UserTracker.updateGame(userId, Some(new FourWinsGame()))
+     UserTracker.updateGame(userId, Some(FourWinsGame()))
     val url = routes.WebSocketController
       .websocket().webSocketURL()
     Ok(views.html.fourwins(userId, url))
@@ -35,7 +35,7 @@ class GameController @Inject()(implicit actorSystem: ActorSystem,
   def battleship = auth.AuthenticatedAction { implicit request =>
     val userId = request.session.get("userName").get
 
-     UserTracker.updateGame(userId, Some(new BattleshipGame()))
+     UserTracker.updateGame(userId, Some(BattleshipGame()))
     val url = routes.WebSocketController
       .websocket().webSocketURL()
     Ok(views.html.battleship(userId, url))

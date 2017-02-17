@@ -1,4 +1,4 @@
-package example
+package js
 
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -6,7 +6,7 @@ import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.raw.HTMLDivElement
 import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
-import shared.{WebSocketMessage,ActionWrapper}
+import shared.{WebSocketMessage,ActionWrapper, GameActionMessage}
 import shared.WebSocketMessage._
 import prickle.Pickle
 
@@ -81,7 +81,7 @@ trait Game {
     if (canIClick){
       val myBlock = elementClicked.target.asInstanceOf[HTMLDivElement]
       val action = this.make(myBlock.className)
-      connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
+      connection.send(stringify(GameActionMessage(userName, message.sender, action)))
       canIClick = false
     }
   }

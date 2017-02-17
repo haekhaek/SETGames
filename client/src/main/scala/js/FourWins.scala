@@ -1,4 +1,4 @@
-package example
+package js
 
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -6,9 +6,7 @@ import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.raw.HTMLDivElement
 import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
-import shared.{WebSocketMessage,ActionWrapper}
-import shared.WebSocketMessage._
-import prickle.Pickle
+import shared.{WebSocketMessage,ActionWrapper, GameUpdateMessage, GameActionMessage}
 
 @JSExport
 object FourWins{
@@ -30,10 +28,9 @@ object FourWins{
     if (canIClick){
       val myBlock = elementClicked.target.asInstanceOf[HTMLDivElement]
       val columnClicked = myBlock.className.replace(blockPrefix, "").toInt
-      println(columnClicked)
 
       val action = ActionWrapper(List(columnClicked))
-      connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
+      WebSocketUtil.send(connection, GameActionMessage(userName, message.sender, action))
       canIClick = false
     }
   }
@@ -80,8 +77,6 @@ object FourWins{
     val gameField: HTMLDivElement = createDiv("", gameFieldId)
     val gameContainer = dom.document.getElementById(gameContainerId).asInstanceOf[HTMLDivElement]
     gameContainer.innerHTML = ""
-
-    println(playerCharacters)
 
     for(i <- playerCharacters.view.zipWithIndex.toList.reverse){
       for(player <- i._1.view.zipWithIndex){

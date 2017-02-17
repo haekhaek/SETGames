@@ -1,4 +1,4 @@
-package example
+package js
 
 import org.scalajs.dom
 import org.scalajs.dom.html
@@ -6,7 +6,7 @@ import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.raw.HTMLDivElement
 import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
-import shared.{WebSocketMessage,ActionWrapper}
+import shared.{WebSocketMessage,ActionWrapper, GameUpdateMessage, GameActionMessage}
 import shared.WebSocketMessage._
 import prickle.Pickle
 
@@ -45,16 +45,8 @@ object TicTacToe{
       val y = blockIdClicked.charAt(1)-'0'
 
       val action = ActionWrapper(List(x,y))
-      connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
+      connection.send(stringify(GameActionMessage(userName, message.sender, action)))
       canIClick = false
-    }
-  }
-
-  def setImageToBlock(blockId: String, player: String): Unit = {
-    val block = dom.document.getElementById(blockPrefix+blockId).asInstanceOf[HTMLDivElement]
-    player match {
-      case "x" => block.appendChild(new Image("/assets/images/x-player.png", "playerImage").element)
-      case _ => block.appendChild(new Image("/assets/images/o-player.png", "playerImage").element)
     }
   }
 
@@ -84,7 +76,7 @@ object TicTacToe{
 
   @JSExport
 	def createGameField(playerCharacters: Iterable[Iterable[Char]], myTurn: Boolean, message: WebSocketMessage){
-
+    canIClick = myTurn
     val gameField: HTMLDivElement = createDiv("", gameFieldId)
     val gameContainer = dom.document.getElementById(gameContainerId).asInstanceOf[HTMLDivElement]
     gameContainer.innerHTML = ""

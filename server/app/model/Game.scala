@@ -3,8 +3,8 @@
   */
 
 package model
-
-import shared.{GameWrapper, ActionWrapper, StateWrapper}
+import play.api.Logger
+import shared.{GameWrapper, ActionWrapper, StateWrapper, GameState}
 
 trait Game[T] {
   this : Field with Update[T] =>
@@ -42,16 +42,16 @@ trait FieldBattleship extends Field {
     var canSet: Boolean = false
 
     for (shipSize <- shipSizes){
-      println("Set ship of size " + shipSize)
+      Logger.debug(s"Set ship of size $shipSize")
       while(!canSet){
         val res = setShip(shipSize, availableBoxes, f)
         canSet = res._1
         if (canSet){
           availableBoxes = res._2
-          println("Set! :)")
+          Logger.debug(s"Set! :)")
         }
         else{
-          println("cannot set ship of size " + shipSize)
+          Logger.debug(s"cannot set ship of size $shipSize")
         }
       }
       canSet = false
@@ -60,7 +60,6 @@ trait FieldBattleship extends Field {
       for (elem <- row){
         print(elem + " ")
       }
-      println()
     }
     return f
   }
@@ -86,22 +85,20 @@ trait FieldBattleship extends Field {
     val shipBoxes: List[Location] = (for (i <- 0 to s*(1-o); j <- 0 to s*o) yield ((Location(x + i, y + j)))).toList
     val enclosingBoxes: List[Location] = (for (i <- -1 to size*(1-o); j <- -1 to size*o +1) yield ((Location(x + i, y + j)))).toList
 
-    //println("enclosing" + enclosingBoxes)
-    //test if ship can be set there   //shipBoxes.subsetOf(availableBoxes)??
-    shipBoxes.foreach(shipBox => {
-      if (!freeBoxes.contains(shipBox)){
-        return (false, availableBoxes)
-      }
-    })
+    //test if ship can be set there 
+    val canSet = shipBoxes.filter(shipBox => !freeBoxes.contains(shipBox)).isEmpty
+    if(!canSet){
+      return (false, availableBoxes)
+    }else{
+      shipBoxes.foreach(shipBox => {
+        field(shipBox.row)(shipBox.col) = 'B'
+      })
 
-    shipBoxes.foreach(shipBox => {
-      field(shipBox.row)(shipBox.col) = 'B'
-    })
-
-    enclosingBoxes.foreach(box => {
-      freeBoxes = freeBoxes.filter(_ != box)
-    })
-    return (true, freeBoxes)
+      enclosingBoxes.foreach(box => {
+        freeBoxes = freeBoxes.filter(_ != box)
+      })
+      return (true, freeBoxes)
+    }
   }
 }
 
@@ -110,8 +107,8 @@ trait Update[T]{
   //var availableActions2: List[Action[T]]//player O
   def getAvailableActions(): List[Action[T]] = this.availableActions
   def update(action: Action[T], f1: Array[Array[Char]], f2: Array[Array[Char]], p:Player, s:State): State
-  def checkWin(lastRow: Int, lastCol: Int, maxRow: Int, maxCol: Int, noRequired: Int, f1:Array[Array[Char]]): String ={
-    var gameState = "ongoing"
+  def checkWin(lastRow: Int, lastCol: Int, maxRow: Int, maxCol: Int, noRequired: Int, f1:Array[Array[Char]]): GameState.Value ={
+    var gameState = GameState.ONGOING
     val curPlayer = f1(lastRow)(lastCol)
     var inLine = 1
     val min = -(noRequired-1)
@@ -126,7 +123,7 @@ trait Update[T]{
       }
     }
     if (inLine >=noRequired){
-      gameState = "won"
+      gameState = GameState.WON
       return(gameState)
     }
 
@@ -140,7 +137,7 @@ trait Update[T]{
       }
     }
     if (inLine >= noRequired){
-      gameState = "won"
+      gameState = GameState.WON
       return(gameState)
     }
 
@@ -154,7 +151,7 @@ trait Update[T]{
       }
     }
     if (inLine >=noRequired){
-      gameState = "won"
+      gameState = GameState.WON
       return(gameState)
     }
 
@@ -168,18 +165,18 @@ trait Update[T]{
       }
     }
     if (inLine >=noRequired){
-      gameState = "won"
+      gameState = GameState.WON
       return(gameState)
     }
 
     //no winner or loser
     if (availableActions.isEmpty) {
-      gameState = "even"
+      gameState = GameState.EVEN
       return(gameState)
     }
 
     else {
-      gameState = "ongoing"
+      gameState = GameState.ONGOING
       return(gameState)
     }
   }
@@ -197,20 +194,20 @@ trait UpdateTicTacToe extends Update[Location]{
       availableActions = availableActions.filter(_ != action)
       s.gameState = checkWin(r, c, f1)
 
-      if (s.gameState.equals("ongoing")){
+      if (s.gameState.equals(GameState.ONGOING)){
         p.switch()
       }
-      else if (s.gameState.equals("won")){
-        println("Game over. Player " + p.playerLabel + " has won." )
+      else if (s.gameState.equals(GameState.WON)){
+        Logger.debug(s"Game over. Player ${p.playerLabel} has won." )
       }
       else{
-        println("Game over. Draw!")
+        Logger.debug(s"Game over. Draw!")
       }
       return s
     }
 
     else{
-      println("Field not available, please try again!")
+      Logger.debug(s"Field not available, please try again!")
       return s
     }
   }
@@ -233,20 +230,20 @@ trait UpdateFourWins extends Update[Column]{
 
       s.gameState = checkWin(curRow(c), c, f1)
       curRow(c) += 1
-      if (s.gameState.equals("ongoing")){
+      if (s.gameState.equals(GameState.ONGOING)){
         p.switch()
       }
-      else if (s.gameState.equals("won")){
-        println("Game over. Player " + p.playerLabel + " has won." )
+      else if (s.gameState.equals(GameState.WON)){
+        Logger.debug(s"Game over. Player ${p.playerLabel} has won." )
       }
       else{
-        println("Game over. Draw!")
+        Logger.debug(s"Game over. Draw!")
       }
 
       return s
     }
     else{
-      println("Column already full, please try again!")
+      Logger.debug(s"Column already full, please try again!")
       return s
     }
   }
@@ -282,7 +279,7 @@ trait UpdateBattleship extends Update[Location]{
         availableActions2 = availableActions2.filter(_ != action)
       }
       else {
-        println("You already shot this field, please try again!")
+        Logger.debug(s"You already shot this field, please try again!")
         return s
       }
 
@@ -302,28 +299,27 @@ trait UpdateBattleship extends Update[Location]{
     return hit
   }
 
-  //@Override??
-  def checkWin(field: Array[Array[Char]]): String = {
-    val state:String = field.find(_.contains('B')) match {
-      case Some(x) => "ongoing"
-      case None => "won"
+  def checkWin(field: Array[Array[Char]]): GameState.Value = {
+    val state:GameState.Value = field.find(_.contains('B')) match {
+      case Some(x) => GameState.ONGOING
+      case None => GameState.WON
     }
     return state
   }
 
-  def nextTurn(hit: Char, p: Player, gameState: String): Unit = {
+  def nextTurn(hit: Char, p: Player, gameState: GameState.Value): Unit = {
     if (hit.equals('W')) {
-      println("Player " + p.playerLabel + " has hit the water.")
+      Logger.debug(s"Player ${p.playerLabel} has hit the water.")
       p.switch()
     }
-    else if (hit.equals('H') && gameState.equals("won")) {
-      println("Game over. Player " + p.playerLabel + " has won.")
+    else if (hit.equals('H') && gameState.equals(GameState.WON)) {
+      Logger.debug(s"Game over. Player ${p.playerLabel} has won.")
     }
-    else if (hit.equals('H') && gameState.equals("ongoing")) {
-      println("Player " + p.playerLabel + " has hit a ship. He may shoot again.")
+    else if (hit.equals('H') && gameState.equals(GameState.ONGOING)) {
+      Logger.debug(s"Player ${p.playerLabel} has hit a ship. He may shoot again.")
     }
     else {
-      println("Sorry, something went wrong here! Hit: " + hit + "gameState: " + gameState)
+      Logger.debug(s"Sorry, something went wrong here! Hit: $hit gameState: $gameState")
     }
   }
 }
@@ -332,7 +328,7 @@ trait UpdateBattleship extends Update[Location]{
 case class Action[T](data: T) //für Tic Tac Toe & Battleship: Location, für 4 gewinnt: Spalte
 
 class State{
-  var gameState: String  = "ongoing"//won, lost, even, ongoing
+  var gameState: GameState.Value  = GameState.ONGOING //won, lost, even, ongoing
 }
 
 class Player{
@@ -356,7 +352,7 @@ case class Column(c: Int){
   val col: Int = c
 }
 
-class TicTacToeGame extends GameWrapper {
+case class TicTacToeGame() extends GameWrapper {
   val game = new Game[Location] with UpdateTicTacToe with FieldTicTacToe {}
 
   def getAvailableActionWrappers(): List[ActionWrapper] =
@@ -369,13 +365,13 @@ class TicTacToeGame extends GameWrapper {
   }
 
   def currentState : StateWrapper = {
-    StateWrapper(game.state.gameState, game.player.playerLabel,
+    StateWrapper(game.state.gameState.toString, game.player.playerLabel,
       game.field.toList.map(a => a.toList).toList)
   }
 }
 
 
-class FourWinsGame extends GameWrapper {
+case class FourWinsGame() extends GameWrapper {
   val game = new Game[Column] with UpdateFourWins with FieldFourWins {}
 
   def getAvailableActionWrappers(): List[ActionWrapper] =
@@ -388,12 +384,12 @@ class FourWinsGame extends GameWrapper {
   }
 
   def currentState : StateWrapper = {
-    StateWrapper(game.state.gameState, game.player.playerLabel,
+    StateWrapper(game.state.gameState.toString, game.player.playerLabel,
       game.field.toList.map(a => a.toList).toList)
   }
 }
 
-class BattleshipGame extends GameWrapper {
+case class BattleshipGame() extends GameWrapper {
   val game = new Game[Location] with UpdateBattleship with FieldBattleship {}
 
   def getAvailableActionWrappers(): List[ActionWrapper] =
@@ -407,131 +403,11 @@ class BattleshipGame extends GameWrapper {
 
   def currentState : StateWrapper = {
     if (!game.field2.isEmpty){
-      StateWrapper(game.state.gameState, game.player.playerLabel,
+      StateWrapper(game.state.gameState.toString, game.player.playerLabel,
         game.field.toList.map(a => a.toList).toList ++ game.field2.toList.map(a => a.toList).toList)
     }
     else{
       throw new IllegalArgumentException()
     }
   }
-}
-
-
-object main extends App{
-  println("******NEW GAME*********")
-  var g = new Game[Location] with UpdateTicTacToe with FieldTicTacToe {}
-  println("player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(1,1))) //X
-  println("field: " + g.field(1)(1))
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(2, 0))) //O
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(1, 0))) //X
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(2, 2))) //O
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(0,2))) //X
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(1,2))) //O
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(2,1))) //X
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(0,1))) //O
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-  g.updateGameState(Action(Location(0,0))) //X
-  println("state: " + g.state.gameState)
-  println("new player: " + g.player.playerLabel)
-
-  /*println("******NEW GAME*********")
-  var newGame2 = new Game[Location] with UpdateTicTacToe with FieldTicTacToe {}
-  println("player: " + newGame2.player.playerLabel)
-  newGame2.updateGameState(Action(Location(1,1))) //X
-  println("field: " + newGame2.field(1)(1))
-  println("state: " + newGame2.state.gameState)
-  println("new player: " + newGame2.player.playerLabel)
-  newGame2.updateGameState(Action(Location(2, 1))) //O
-  println("state: " + newGame2.state.gameState)
-  println("new player: " + newGame2.player.playerLabel)
-  newGame2.updateGameState(Action(Location(0, 0))) //X
-  println("state: " + newGame2.state.gameState)
-  println("new player: " + newGame2.player.playerLabel)
-  newGame2.updateGameState(Action(Location(2, 0))) //O
-  println("state: " + newGame2.state.gameState)
-  println("new player: " + newGame2.player.playerLabel)
-  newGame2.updateGameState(Action(Location(2,2))) //X
-  println("state: " + newGame2.state.gameState)
-  println("new player: " + newGame2.player.playerLabel)*/
-
-
-  println("******NEW BATTLESHIP GAME*********")
-  var battleship = new Game[Location] with UpdateBattleship with FieldBattleship {}
-  var f = battleship.field //10 * 10
-
-
-
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(1)(1))
-  battleship.updateGameState(Action(Location(1,1))) //X
-  println("state: " + battleship.state.gameState)
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(1)(2))
-  battleship.updateGameState(Action(Location(1,2))) //X
-
-  println("state: " + battleship.state.gameState)
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field(0)(0))
-  battleship.updateGameState(Action(Location(0,0))) //O
-  println("state: " + battleship.state.gameState)
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field(1)(1))
-  battleship.updateGameState(Action(Location(1,1))) //O
-
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(2)(1))
-  battleship.updateGameState(Action(Location(2,1))) //X
-  println("state: " + battleship.state.gameState)
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(3)(1))
-  battleship.updateGameState(Action(Location(3,1))) //X
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(4)(1))
-  battleship.updateGameState(Action(Location(4,1))) //X
-  println("state: " + battleship.state.gameState)
-  println("state: " + battleship.state.gameState)
-  println("player: " + battleship.player.playerLabel)
-  println("field: " + battleship.field2(5)(1))
-  battleship.updateGameState(Action(Location(5,1))) //X
-
-
-  battleship.updateGameState(Action(Location(4,3))) //X
-  battleship.updateGameState(Action(Location(4,4))) //X
-  battleship.updateGameState(Action(Location(4,4))) //X
-  battleship.updateGameState(Action(Location(4,5))) //X
-  battleship.updateGameState(Action(Location(1,6))) //X
-  battleship.updateGameState(Action(Location(1,7))) //X
-  battleship.updateGameState(Action(Location(4,8))) //X
-  battleship.updateGameState(Action(Location(5,8))) //X
-
-  battleship.updateGameState(Action(Location(8,5))) //X
-  battleship.updateGameState(Action(Location(8,6))) //X
-  battleship.updateGameState(Action(Location(8,7))) //X
-  println("state: " + battleship.state.gameState)
-  battleship.updateGameState(Action(Location(8,8))) //X
-  println("state: " + battleship.state.gameState)
-
 }

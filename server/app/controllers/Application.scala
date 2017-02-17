@@ -69,7 +69,11 @@ class Application @Inject()(val auth: AuthAction, val messagesApi: MessagesApi, 
 
   def scores = auth.AuthenticatedAction.async { implicit request =>
     userService.listScores.map { user =>
-      Ok(views.html.scores(user, request.session.get("userName").getOrElse("")))
+      {
+          val userName = request.session.get("userName").get
+          UserTracker.updateGame(userName, None)
+          Ok(views.html.scores(user, userName))
+      }
     }
   }
 }
