@@ -17,19 +17,23 @@ object BattleShip{
   val gameContainerId: String = "gameContainerBattleShip"
   val blockPrefix: String = "battleShipBlockId-"
   val cssGameBlockClass: String = "gameBlockBattleShip"
-  var blockIds = for (i <- 0 to 9; j <- 0 to 9) yield i+""
   var userName: String = ""
   var connection: dom.WebSocket = null
-  var canIClick: Boolean = false
+  var myTurn: Boolean = false
 
   //force browser to download images
   val playerYellowImg = new Image("/assets/images/battleship.png", "playerImage")
   val playerRedImg = new Image("/assets/images/battleship-hit.png", "playerImage")
   val gameFieldImg = new Image("/assets/images/battleship-water.png", "gameFieldImage")
 
-  def clickedOnBlock(elementClicked:dom.Event
-                    ,message: WebSocketMessage): Unit = {
-    if (canIClick){
+  def clickedEvent(elementClicked:dom.Event, message: WebSocketMessage): Unit = {
+    myTurn match {
+      case true => processClick(elementClicked, message)
+      case _ => println("It is not your turn")
+    }
+  }
+
+  def processClick(elementClicked:dom.Event, message: WebSocketMessage): Unit = {
       val myBlock = elementClicked.target.asInstanceOf[HTMLDivElement]
       val blockIdClicked = myBlock.id.replace(blockPrefix, "")
 
@@ -39,83 +43,67 @@ object BattleShip{
 
       val action = ActionWrapper(List(x,y))
       connection.send(stringify(WebSocketMessage(GAME_ACTION.id, userName, message.sender, Pickle.intoString(action))))
-      canIClick = false
-    }
-  }
-
-  def setImageToBlock(blockId: String, player: String): Unit = {
-    val block = dom.document.getElementById(blockPrefix+blockId).asInstanceOf[HTMLDivElement]
-    player match {
-      case "x" => block.appendChild(new Image("/assets/images/x-player.png", "playerImage").element)
-      case _ => block.appendChild(new Image("/assets/images/o-player.png", "playerImage").element)
-    }
-  }
-
-  def updateBlockIds(blockId: String): scala.collection.immutable.IndexedSeq[String] = {
-    blockIds.filter(!_.equals(blockId))
+      myTurn = false
   }
 
   @JSExport
   def startGame(
-        userName_ : String,
-        send : html.Button,
-        message : html.Input,
-        connection_ : dom.WebSocket) {
+    userName_ : String,
+    send : html.Button,
+    message : html.Input,
+    connection_ : dom.WebSocket
+  ) {
     userName = userName_
     connection = connection_
 
-    val onConnectionOpenedHandler = 
-        DomUtil.setupShoutMessenger(userName, send, message, connection)
-    WebSocketUtil.setup(
-        connection,
-        onConnectionOpenedHandler,
-        new WebSocketMessageHandler(userName, connection)
-            with ChallengeHandler
-            with ChallengeAcceptHandler
-            with ChallengeDeclinedHandler
-            with UserUpdateHandler
-            //with ErrorHandler
-            with BattleShipUpdateHandler
-        )
+    val onConnectionOpenedHandler = DomUtil.setupShoutMessenger(userName, send, message, connection)
+    WebSocketUtil
+      .setup(connection
+            ,onConnectionOpenedHandler
+            ,new WebSocketMessageHandler(userName, connection)
+               with ChallengeHandler
+               with ChallengeAcceptHandler
+               with ChallengeDeclinedHandler
+               with UserUpdateHandler
+               //with ErrorHandler
+               with BattleShipUpdateHandler
+            )
   }
 
   @JSExport
-  def createGameField(playerCharacters: Iterable[Iterable[Char]]
-                     ,myTurn: Boolean
-                     ,message: WebSocketMessage
-                     ){
-    canIClick = myTurn
+  def createGameField(
+    playerCharacters : Iterable[Iterable[Char]],
+    myTurn_ : Boolean,
+    message : WebSocketMessage
+  ){
+
+    myTurn = myTurn_
     val gameContainer = dom.document.getElementById(gameContainerId).asInstanceOf[HTMLDivElement]
     gameContainer.innerHTML = ""
 
     val half = (playerCharacters size) / 2
     val (fieldX, fieldO) = playerCharacters.splitAt(half)
-    var gameFieldX = createDiv("", "")
-    var gameFieldO = createDiv("", "")
-
-    val myPlayerLabel = dom.document.getElementById("currentPlayerLabel").innerHTML
-    println(myPlayerLabel)
+    val myPlayerLabel = DomUtil currentPlayerLabel
 
     myPlayerLabel match {
       case "X" =>
-        gameFieldX = foo(fieldX, gameFieldIdX, myTurn, message, true)
-        gameFieldO = foo(fieldO, gameFieldIdO, myTurn, message, false)
+        gameContainer appendChild(foo(fieldX, gameFieldIdX, myTurn, message, true))
+        gameContainer appendChild(foo(fieldO, gameFieldIdO, myTurn, message, false))
       case "O" =>
-        gameFieldX = foo(fieldX, gameFieldIdX, myTurn, message, false)
-        gameFieldO = foo(fieldO, gameFieldIdO, myTurn, message, true)
+        gameContainer appendChild(foo(fieldO, gameFieldIdO, myTurn, message, true))
+        gameContainer appendChild(foo(fieldX, gameFieldIdX, myTurn, message, false))
       case _ => println("error")
     }
-    gameContainer appendChild(gameFieldX)
-    gameContainer appendChild(gameFieldO)
   }
 
-  def foo(field: Iterable[Iterable[Char]]
-         ,myGameFieldId: String
-         ,myTurn: Boolean
-         ,message: WebSocketMessage
-         ,showShips: Boolean): HTMLDivElement = {
+  def foo(
+    field: Iterable[Iterable[Char]],
+    myGameFieldId: String,
+    myTurn: Boolean,
+    message: WebSocketMessage,
+    showShips: Boolean): HTMLDivElement = {
 
-    val gameField: HTMLDivElement = createDiv("gameFieldBattleShip", myGameFieldId)
+    val gameField: HTMLDivElement = div(cls:="gameFieldBattleShip",id:=myGameFieldId).render
 
     for(i <- field.view.zipWithIndex.toList.reverse){
       for(player <- i._1.view.zipWithIndex){
@@ -123,20 +111,19 @@ object BattleShip{
         val x = player._2
 
         if(player._1 == 'B' && showShips){
-          val imageSrc = Some("/assets/images/battleship.png")
-          val block = createGameBlock(imageSrc, y+""+x, myTurn, message)
-
-          gameField.appendChild(block)
+          gameField.appendChild(
+            createDivWithImage(y+""+x, message, "/assets/images/battleship.png")
+          )
         }else if(player._1 == 'W'){
-          val imageSrc = Some("/assets/images/battleship-water.png")
-          val block = createGameBlock(imageSrc, y+""+x, myTurn, message)
-          gameField.appendChild(block)
+          gameField.appendChild(
+            createDivWithImage(y+""+x, message, "/assets/images/battleship-water.png")
+          )
         }else if(player._1 == 'H'){
-          val imageSrc = Some("/assets/images/battleship-hit.png")
-          val block = createGameBlock(imageSrc, y+""+x, myTurn, message)
-          gameField.appendChild(block)
+          gameField.appendChild(
+            createDivWithImage(y+""+x, message, "/assets/images/battleship-hit.png")
+          )
         }else{
-          gameField.appendChild(createGameBlock(None, y+""+x, myTurn, message))
+          gameField.appendChild(createDiv(y+""+x, message))
         }
       }
     }
@@ -144,37 +131,19 @@ object BattleShip{
     gameField
   }
 
-  def createDiv(cssClass:String, cssId: String) = div(
-      cls:=cssClass,
-      id:=cssId
-    ).render
-
-  def createGameBlock(image: Option[String]
-                     ,x: String
-                     ,myTurn: Boolean
-                     ,message: WebSocketMessage) =
-   image match {
-    case None => {
-      div(cls:=s"battleShipBlock"
-         ,id:=s"battleShipBlockId-$x"
-         ,onclick := {
-          (e: dom.Event) => clickedOnBlock(e, message)
-         }
-      ).render
-    }
-    case Some (imageSrc) => {
-      div(cls:=s"battleShipBlock"
-         ,id:=s"battleShipBlockId-$x"
-         ,onclick := {
-            (e: dom.Event) => {
-              if(myTurn){
-                clickedOnBlock(e, message)
-              }
-            }
-          }
-        ,img(src:=imageSrc, cls:="playerImage")
-      ).render
-    }
-  }
+  def createDivWithImage (x: String, message: WebSocketMessage, imageSrc: String) = 
+  div(
+    cls:=s"battleShipBlock",
+    id:=s"battleShipBlockId-$x",
+    onclick := { (e: dom.Event) => BattleShip.clickedEvent(e, message) },
+    img(src:=imageSrc, cls:="playerImage")
+  ).render
+  
+  def createDiv(x: String, message: WebSocketMessage) =
+  div(
+    cls:=s"battleShipBlock",
+    id:=s"battleShipBlockId-$x",
+    onclick := {(e: dom.Event) => BattleShip.clickedEvent(e, message)}
+  ).render
 
 }

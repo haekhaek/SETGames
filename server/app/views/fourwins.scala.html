@@ -5,10 +5,15 @@
     <div id="gameContainerFourWins" class="center-block"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            example.FourWins().startGame("@username",
+            example.ConnectFour().startGame("@username",
                 document.getElementById("send"),
                 document.getElementById("message"),
                 new WebSocket("@url"));
+
+            // example.FourWins().startGame("@username",
+            //     document.getElementById("send"),
+            //     document.getElementById("message"),
+            //     new WebSocket("@url"));
         }, false);
     </script>
 }

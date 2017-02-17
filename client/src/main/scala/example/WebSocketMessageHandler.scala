@@ -115,7 +115,7 @@ trait FourWinsUpdateHandler extends GameUpdateHandler {
     def update(message: WebSocketMessage, myTurn: Boolean) = {
         Unpickle[StateWrapper].fromString(message.data) match {
             case Success(state) =>
-                FourWins.createGameField(state.field, myTurn, message)
+                ConnectFour.createGameField(state.field, myTurn, message)
             case _ => throw new IllegalArgumentException
         }
     }
@@ -128,7 +128,7 @@ trait BattleShipUpdateHandler extends GameUpdateHandler {
     def update(message: WebSocketMessage, myTurn: Boolean) = {
         Unpickle[StateWrapper].fromString(message.data) match {
             case Success(state) =>
-                println(state)
+                // Game.battleShip.createGameField(state.field, myTurn, message)
                 BattleShip.createGameField(state.field, myTurn, message)
             case _ => throw new IllegalArgumentException
         }

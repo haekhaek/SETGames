@@ -26,7 +26,6 @@ object TicTacToe{
   val gameFieldId: String = "gameField"
   val gameContainerId: String = "gameContainer"
   val blockPrefix: String = "blockId-"
-  var blockIds = for (i <- 0 to 2; j <- 0 to 2) yield i+""+j
   var userName: String = ""
   var connection: dom.WebSocket = null
   var canIClick: Boolean = false
@@ -59,10 +58,6 @@ object TicTacToe{
     }
   }
 
-  def updateBlockIds(blockId: String): scala.collection.immutable.IndexedSeq[String] = {
-    blockIds.filter(!_.equals(blockId))
-  }
-
   @JSExport
   def startGame(
         userName_ : String,
@@ -89,7 +84,7 @@ object TicTacToe{
 
   @JSExport
 	def createGameField(playerCharacters: Iterable[Iterable[Char]], myTurn: Boolean, message: WebSocketMessage){
-    canIClick = myTurn
+
     val gameField: HTMLDivElement = createDiv("", gameFieldId)
     val gameContainer = dom.document.getElementById(gameContainerId).asInstanceOf[HTMLDivElement]
     gameContainer.innerHTML = ""
