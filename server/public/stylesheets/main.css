@@ -97,13 +97,13 @@
   cursor: pointer;
 }
 
-.battleShipBlock {
+.gameFieldBattleShip div{
   width: 32px;
   height: 32px;
   border: 1px solid #B4B4FF;
 }
 
-.battleShipBlock img {
+.gameFieldBattleShip div img{
   width: 100%;
   height: 100%;
 }

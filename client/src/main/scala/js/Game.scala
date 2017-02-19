@@ -25,7 +25,7 @@ trait ActionWrapperMaker {
   def make(blockIdClicked: String): ActionWrapper
 }
 
-trait ActionWrapperMakerConnectFour extends ActionWrapperMaker{
+trait ActionWrapperMakerColumn extends ActionWrapperMaker{
   val blockPrefix: String = "blockId-"
 
   override def make(blockIdClicked: String) = {
@@ -34,15 +34,15 @@ trait ActionWrapperMakerConnectFour extends ActionWrapperMaker{
   }
 }
 
-trait ActionWrapperMakerTicTacToe extends ActionWrapperMaker{
+trait ActionWrapperMakerLocation extends ActionWrapperMaker{
   val blockPrefix: String = " blockId-"
 
   override def make(blockIdClicked: String) = {
-    val foo = blockIdClicked.replace("blockId-", "")
+    val coordinates = blockIdClicked.replace("blockId-", "")
 
     //parse coordinates to int
-    val x = foo.charAt(0)-'0'
-    val y = foo.charAt(1)-'0'
+    val x = coordinates.charAt(0)-'0'
+    val y = coordinates.charAt(1)-'0'
     ActionWrapper(List(x,y))
   }
 }
@@ -51,14 +51,14 @@ trait GameFieldMaker {
   val gameContainerId: String
   def makeGameField(
     playerCharacters: Iterable[Iterable[Char]],
-    createGameBlock: (Option[String], String) => HTMLDivElement
-    ): HTMLDivElement
+    createGameBlock: (Option[String], String) => HTMLDivElement): HTMLDivElement
 }
 
 trait GameFieldMakerConnectFour extends GameFieldMaker {
   val gameFieldId: String = "gameFieldFourWins"
   override val gameContainerId: String = "gameContainerFourWins"
 
+  //force browser to download images before game even started, user can benefit from browser cache
   val playerYellowImg = new Image("/assets/images/four-wins-player-yellow.jpg", "playerImage")
   val playerRedImg = new Image("/assets/images/four-wins-player-red.jpg", "playerImage")
   val gameFieldImg = new Image("/assets/images/four-wins-block.jpg", "gameFieldImage")
@@ -71,66 +71,117 @@ trait GameFieldMakerConnectFour extends GameFieldMaker {
 
     for(i <- playerCharacters.view.zipWithIndex.toList.reverse){
       for(player <- i._1.view.zipWithIndex){
-        val y = i._2
-        val x = player._2
+        val coordinates = player._2 toString
+        var imageSrc : Option[String] = None
 
-        if(player._1 == 'X'){
-          val imageSrc = Some("/assets/images/four-wins-player-yellow.jpg")
-          val block = createGameBlock(imageSrc, (x toString))
-
-          gameField.appendChild(block)
-        }else if(player._1 == 'O'){
-          val imageSrc = Some("/assets/images/four-wins-player-red.jpg")
-          val block = createGameBlock(imageSrc, (x toString))
-          gameField.appendChild(block)
-        }else{
-          gameField.appendChild(createGameBlock(None, (x toString)))
+        player._1 match {
+          case 'X' => imageSrc = Some("/assets/images/four-wins-player-yellow.jpg")
+          case 'O' => imageSrc = Some("/assets/images/four-wins-player-red.jpg")
+          case _ => imageSrc = None
         }
+        gameField.appendChild(createGameBlock(imageSrc, coordinates))
       }
     }
 
     gameField
   }
+}
+
+trait GameFieldMakerBattleShip extends GameFieldMaker {
+  val gameFieldIdX: String = "gameFieldBattleShipX"
+  val gameFieldIdO: String = "gameFieldBattleShipO"
+  override val gameContainerId: String = "gameContainerBattleShip"
+
+  //force browser to download images before game even started, user can benefit from browser cache
+  val playerYellowImg = new Image("/assets/images/battleship.png", "playerImage")
+  val playerRedImg = new Image("/assets/images/battleship-hit.png", "playerImage")
+  val gameFieldImg = new Image("/assets/images/battleship-water.png", "gameFieldImage")
+
+  override def makeGameField(
+    playerCharacters: Iterable[Iterable[Char]]
+   ,createGameBlock: (Option[String], String) => HTMLDivElement): HTMLDivElement = {
+
+    val gameFields: HTMLDivElement = div().render
+    val middle = (playerCharacters size) / 2
+    val (fieldX, fieldO) = playerCharacters.splitAt(middle)
+
+    (DomUtil currentPlayerLabel) match {
+      case "X" =>
+        gameFields appendChild(makeGameFieldBattleShip(fieldX, gameFieldIdX, createGameBlock, true))
+        gameFields appendChild(makeGameFieldBattleShip(fieldO, gameFieldIdO, createGameBlock, false))
+      case _ =>
+        gameFields appendChild(makeGameFieldBattleShip(fieldO, gameFieldIdO, createGameBlock, true))
+        gameFields appendChild(makeGameFieldBattleShip(fieldX, gameFieldIdX, createGameBlock, false))
+    }
+
+    gameFields
+  }
+
+  def makeGameFieldBattleShip(
+    field: Iterable[Iterable[Char]],
+    myGameFieldId: String,
+    createGameBlock: (Option[String], String) => HTMLDivElement,
+    showShips: Boolean): HTMLDivElement = {
+
+    val gameField: HTMLDivElement = div(cls:="gameFieldBattleShip",id:=myGameFieldId).render
+
+    for(i <- field.view.zipWithIndex.toList.reverse){
+      for(player <- i._1.view.zipWithIndex){
+        val coordinates = i._2.toString + player._2.toString
+        var imageSrc : Option[String] = None
+
+        player._1 match {
+          case 'B' => if (showShips) imageSrc = Some("/assets/images/battleship.png")
+          case 'W' => imageSrc = Some("/assets/images/battleship-water.png")
+          case 'H' => imageSrc = Some("/assets/images/battleship-hit.png")
+          case _ => imageSrc = None
+        }
+        gameField.appendChild(createGameBlock(imageSrc, coordinates))
+      }
+    }
+
+    showShips match {
+      case true => gameField appendChild(p(cls:=s"text-center")("Your grid").render)
+      case false => gameField appendChild(p(cls:=s"text-center")("Opponents grid").render)
+    }
+    gameField
+  }
+
 }
 
 trait GameFieldMakerTicTacToe extends GameFieldMaker {
   val gameFieldId: String = "gameField"
   override val gameContainerId: String = "gameContainer"
 
-  //force browser to download images
+  //force browser to download images before game even started, user can benefit from browser cache
   val playerXImage = new Image("/assets/images/x-player.png", "playerImage")
   val playerOImage = new Image("/assets/images/o-player.png", "playerImage")
   val gameFieldImage = new Image("/assets/images/ttt-background-red.jpg", "gameFieldImage")
 
   override def makeGameField(
     playerCharacters: Iterable[Iterable[Char]]
-   ,createGameBlock: (Option[String],String) => HTMLDivElement): HTMLDivElement = {
+   ,createGameBlock: (Option[String], String) => HTMLDivElement): HTMLDivElement = {
 
     val gameField: HTMLDivElement = div(cls:="",id:=gameFieldId).render
 
     for(i <- playerCharacters.view.zipWithIndex){
       for(player <- i._1.view.zipWithIndex){
-        val y = i._2
-        val x = player._2
+        val coordinates = i._2.toString + player._2.toString
+        var imageSrc : Option[String] = None
 
-        if(player._1 == 'X'){
-          val imageSrc = Some("/assets/images/x-player.png")
-          val block = createGameBlock(imageSrc, y+""+x)
-
-          gameField.appendChild(block)
-        }else if(player._1 == 'O'){
-          val imageSrc = Some("/assets/images/o-player.png")
-          val block = createGameBlock(imageSrc, y+""+x)
-          gameField.appendChild(block)
-        }else{
-          gameField.appendChild(createGameBlock(None, y+""+x))
+        player._1 match {
+          case 'X' => imageSrc = Some("/assets/images/x-player.png")
+          case 'O' => imageSrc = Some("/assets/images/o-player.png")
+          case _ => imageSrc = None
         }
+        gameField.appendChild(createGameBlock(imageSrc, coordinates))
       }
     }
 
     gameField
   }
 }
+
 
 trait Game {
   this: ActionWrapperMaker with GameFieldMaker =>
@@ -177,23 +228,13 @@ trait Game {
       case None => {
         div(
           cls:=s"blockId-$x",
-          // id:=s"blockId-$x$y",
-          onclick := {
-          (e: dom.Event) => clickedOnBlock(e, message)
-          }
+          onclick := { (e: dom.Event) => clickedOnBlock(e, message) }
         ).render
       }
       case Some (imageSrc) => {
         div(
           cls:=s"blockId-$x",
-          // id:=s"blockId-$x"+y,
-          onclick := {
-          (e: dom.Event) => {
-            if(myTurn){
-              clickedOnBlock(e, message)
-            }
-            }
-          },
+          onclick := { (e: dom.Event) => clickedOnBlock(e, message) },
           img(src:=imageSrc, cls:="playerImage")
         ).render
       }
@@ -202,7 +243,7 @@ trait Game {
 
 @JSExport
 object ConnectFour {
-  val game = new Game with ActionWrapperMakerConnectFour with GameFieldMakerConnectFour {}
+  val game = new Game with ActionWrapperMakerColumn with GameFieldMakerConnectFour {}
 
   @JSExport
   def createGameField(
@@ -236,7 +277,7 @@ object ConnectFour {
 
 @JSExport
 object TicTacToe {
-  val game = new Game with ActionWrapperMakerTicTacToe with GameFieldMakerTicTacToe {}
+  val game = new Game with ActionWrapperMakerLocation with GameFieldMakerTicTacToe {}
 
   @JSExport
   def createGameField(
@@ -262,6 +303,39 @@ object TicTacToe {
             with ChallengeDeclinedHandler
             with UserUpdateHandler
             with TicTacToeUpdateHandler
+        )
+    game.startGame(userName, send, message, connection)
+  }
+}
+
+@JSExport
+object BattleShip {
+  val game = new Game with ActionWrapperMakerLocation with GameFieldMakerBattleShip {}
+
+  @JSExport
+  def createGameField(
+    playerCharacters: Iterable[Iterable[Char]],
+    myTurn: Boolean,
+    message: WebSocketMessage):Unit = game.createGameField(playerCharacters, myTurn, message)
+
+    @JSExport
+  def startGame(
+        userName : String,
+        send : html.Button,
+        message : html.Input,
+        connection : dom.WebSocket) {
+
+    val onConnectionOpenedHandler = 
+        DomUtil.setupShoutMessenger(userName, send, message, connection)
+    WebSocketUtil.setup(
+        connection,
+        onConnectionOpenedHandler,
+        new WebSocketMessageHandler(userName, connection)
+            with ChallengeHandler
+            with ChallengeAcceptHandler
+            with ChallengeDeclinedHandler
+            with UserUpdateHandler
+            with BattleShipUpdateHandler
         )
     game.startGame(userName, send, message, connection)
   }
