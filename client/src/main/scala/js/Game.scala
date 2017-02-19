@@ -8,7 +8,7 @@ import scalatags.JsDom.all._
 import scala.scalajs.js.annotation.JSExport
 import shared.{WebSocketMessage,ActionWrapper, GameActionMessage}
 import shared.WebSocketMessage._
-import prickle.Pickle
+
 
 class Image(src: String, cssClassName: String) {
   private var ready: Boolean = false
