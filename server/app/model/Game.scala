@@ -83,7 +83,10 @@ trait FieldBattleship extends Field {
     //boxes
     val s = size-1
     val shipBoxes: List[Location] = (for (i <- 0 to s*(1-o); j <- 0 to s*o) yield ((Location(x + i, y + j)))).toList
-    val enclosingBoxes: List[Location] = (for (i <- -1 to size*(1-o); j <- -1 to size*o +1) yield ((Location(x + i, y + j)))).toList
+    val enclosingBoxes: List[Location] = shipBoxes
+      .flatMap(
+        pos => for(x <- -1 to 1; y <- -1 to 1) yield (Location(pos.row + x, pos.col + y))
+      ).toSet.toList
 
     //test if ship can be set there 
     val canSet = shipBoxes.filter(shipBox => !freeBoxes.contains(shipBox)).isEmpty
